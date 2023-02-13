@@ -1,0 +1,137 @@
+#
+---
+driver:
+  name: terraform
+  command_timeout: 600
+  verify_version: true
+
+provisioner:
+  name: terraform
+
+verifier:
+  name: terraform
+  color: true
+  systems:
+    - name: google
+      backend: gcp
+
+platforms:
+  - name: single-region
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-one
+        regions: '[\"us-west1\"]'
+  - name: dual-region
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-two
+        regions: '[\"us-west1\",\"us-central1\"]'
+  - name: secondary-range
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-secondary
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        cidrs: '{primary=\"10.0.0.0/8\",primary_subnet_size=16,secondaries={test={cidr=\"192.168.0.0/16\",subnet_size=24}}}'
+  - name: gke
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-gke
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        cidrs: '{primary=\"172.16.0.0/12\",primary_subnet_size=16,secondaries={pods={cidr=\"10.0.0.0/8\",subnet_size=14},services={cidr=\"10.8.0.0/16\",subnet_size=20}}}'
+  - name: added-internet-route
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-net-route
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        routes: '[{name=\"mrpn-route-test-gateway\",destination_range=\"1.1.1.0/24\",next_hop_internet=true}]'
+  - name: added-ip-route
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-ip-route
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        routes: '[{name=\"mrpn-route-test-ip\",destination_range=\"10.0.0.0/8\",next_hop_ip=\"172.16.0.100\"}]'
+  - name: mtu
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-mtu
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1500,delete_default_routes=true,restricted_apis=true,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false}'
+  - name: keep-default-routes
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-keep-default-routes
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false}'
+  - name: disable-restricted-apis
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-disable-restricted-apis
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=true,restricted_apis=false,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false}'
+  - name: regional-routing
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-regional-routing
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=true,restricted_apis=true,routing_mode=\"REGIONAL\",nat=false,nat_tags=[],flow_logs=false}'
+  - name: global-nat
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-global-nat
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=false}'
+  - name: regional-nat
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-regional-nat
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"REGIONAL\",nat=true,nat_tags=[],flow_logs=false}'
+  - name: tagged-nat
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-tag-nat
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=true,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[\"mrpn-test\"],flow_logs=false}'
+  - name: flow-logs
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-flow-logs
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=true}'
+  - name: custom-route
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-custom-route
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        routes: '[{name=\"mrpn-test-ip\",description=\"Simple route\",destination_range=\"10.0.0.0/16\",next_hop_ip=\"172.16.0.100\"}]'
+
+suites:
+  - name: multi-region-private-network

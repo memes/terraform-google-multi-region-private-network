@@ -1,0 +1,34 @@
+---
+name: multi-region-private-network
+title: Verifies that a VPC network matches expectations
+maintainer: Matthew Emes <memes@matthewemes.com>
+license: Apache-2.0
+version: 1.0.0
+supports:
+  - platform: gcp
+depends:
+  - name: inspec-gcp
+    git: https://github.com/inspec/inspec-gcp.git
+    tag: v1.10.37
+inputs:
+  - name: output_self_link
+    type: string
+    required: true
+  - name: output_subnets
+    type: hash
+    required: true
+  - name: output_options_json
+    type: string
+    required: true
+  - name: input_project_id
+    type: string
+    required: true
+  - name: input_name
+    type: string
+    required: true
+  - name: input_description
+    type: string
+    required: false
+  - name: input_regions
+    type: string
+    required: true
