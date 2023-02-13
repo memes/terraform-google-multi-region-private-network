@@ -163,8 +163,8 @@ No resources.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_self_link"></a> [self\_link](#output\_self\_link) | n/a |
-| <a name="output_subnets"></a> [subnets](#output\_subnets) | n/a |
+| <a name="output_self_link"></a> [self\_link](#output\_self\_link) | The fully-qualified self-link URI of the created VPC network. |
+| <a name="output_subnets"></a> [subnets](#output\_subnets) | A map of subnet name to region, self\_link, and CIDRs. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 <!-- markdownlint-enable MD033 MD034 -->
 

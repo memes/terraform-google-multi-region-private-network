@@ -22,21 +22,20 @@ end
 control 'subnets' do
   title 'Ensure VPC subnetworks are configured as expected'
   impact 1.0
-  self_links = input('output_subnets')
+  subnets = JSON.parse(input('output_subnets_json'), { symbolize_names: true })
   name = input('input_name')
-  regions = input('input_regions').gsub(/(?:[\[\]]|\\?")/, '').gsub(', ', ',').split(',')
   cidrs = JSON.parse(input('output_cidrs_json'), { symbolize_names: true })
   secondaries = cidrs[:secondaries] || {}
   options = JSON.parse(input('output_options_json'), { symbolize_names: true })
 
-  regions.each do |region|
-    params = self_links[region].match(SUBNET_MATCHER).named_captures
+  subnets.each do |_, v|
+    params = v[:self_link].match(SUBNET_MATCHER).named_captures
     subnet = google_compute_subnetwork(project: params['project'], region: params['region'], name: params['name'])
     describe subnet do
       it { should exist }
       its('name') { should match(/^#{name}(?:-[a-z]{2}){2}[1-9]$/) }
       its('description') { should be_nil }
-      its('region') { should match(/#{region}$/) }
+      its('region') { should match(/#{v[:region]}$/) }
       its('ip_cidr_range') { should be_in_cidr(cidrs[:primary]) }
       its('ip_cidr_range') { should have_cidr_size(cidrs[:primary_subnet_size]) }
       its('purpose') { should cmp 'PRIVATE' }

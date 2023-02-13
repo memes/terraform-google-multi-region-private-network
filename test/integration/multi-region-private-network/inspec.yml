@@ -14,8 +14,8 @@ inputs:
   - name: output_self_link
     type: string
     required: true
-  - name: output_subnets
-    type: hash
+  - name: output_subnets_json
+    type: string
     required: true
   - name: output_options_json
     type: string

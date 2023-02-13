@@ -19,6 +19,7 @@
         "markdownlint",
         "opencontainers",
         "pastebin",
+        "subnetworks",
         "thumbsup",
         "trimpath",
         "venv",

@@ -5,8 +5,8 @@ output "self_link" {
   value = module.test.self_link
 }
 
-output "subnets" {
-  value = module.test.subnets
+output "subnets_json" {
+  value = jsonencode(module.test.subnets)
 }
 
 # Output some of the inputs as JSON objects to make it easier to process in kitchen
