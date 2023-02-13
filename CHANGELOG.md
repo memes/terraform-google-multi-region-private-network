@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0 (2023-02-13)
+
+
+### Features
+
+* Multi-region private VPC module ([f98f7f4](https://github.com/memes/terraform-google-multi-region-private-network/commit/f98f7f429f2f6c6fd674cdf5565a051c5e1448b5))
+
+## Changelog
+
 <!-- markdownlint-disable MD024 -->
 
 All notable changes to this project will be documented in this file.
