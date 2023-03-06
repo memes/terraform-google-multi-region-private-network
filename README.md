@@ -141,7 +141,7 @@ module "vpc" {
 |------|--------|---------|
 | <a name="module_nat"></a> [nat](#module\_nat) | terraform-google-modules/cloud-router/google | 4.0.0 |
 | <a name="module_network"></a> [network](#module\_network) | terraform-google-modules/network/google | 6.0.1 |
-| <a name="module_regions"></a> [regions](#module\_regions) | memes/region-detail/google | 1.0.1 |
+| <a name="module_regions"></a> [regions](#module\_regions) | memes/region-detail/google | 1.1.0 |
 
 ## Resources
 
