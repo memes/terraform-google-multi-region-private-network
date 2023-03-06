@@ -42,7 +42,7 @@ the following properties:
 ```hcl
 module "vpc" {
     source = "memes/multi-region-private-network/google"
-    version = "1.0.0"
+    version = "1.0.2"
     project_id = "my-project-id"
     name = "internal-us"
     regions = ["us-east1", "us-west1"]
@@ -70,7 +70,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "1.0.0"
+    version    = "1.0.2"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -113,7 +113,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "1.0.0"
+    version    = "1.0.2"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
