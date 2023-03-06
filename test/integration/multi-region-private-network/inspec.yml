@@ -17,6 +17,9 @@ inputs:
   - name: output_subnets_json
     type: string
     required: true
+  - name: output_subnets_by_region_json
+    type: string
+    required: true
   - name: output_options_json
     type: string
     required: true
