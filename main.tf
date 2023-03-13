@@ -77,7 +77,7 @@ module "network" {
 module "nat" {
   for_each = { for region in var.regions : region => format("%s-%s", var.name, module.regions.results[region].abbreviation) if var.options.nat }
   source   = "terraform-google-modules/cloud-router/google"
-  version  = "4.0.0"
+  version  = "5.0.0"
   project  = var.project_id
   name     = each.value
   network  = module.network.network_self_link
