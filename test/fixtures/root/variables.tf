@@ -31,11 +31,6 @@ variable "cidrs" {
   }
 }
 
-variable "routes" {
-  type    = list(map(string))
-  default = []
-}
-
 variable "options" {
   type = object({
     mtu                   = number
@@ -45,6 +40,7 @@ variable "options" {
     nat                   = bool
     nat_tags              = set(string)
     flow_logs             = bool
+    nat_logs              = bool
   })
   default = {
     mtu                   = 1460
@@ -54,5 +50,6 @@ variable "options" {
     nat                   = false
     nat_tags              = null
     flow_logs             = false
+    nat_logs              = false
   }
 }

@@ -40,7 +40,7 @@ control 'subnets' do
       its('ip_cidr_range') { should have_cidr_size(cidrs[:primary_subnet_size]) }
       its('purpose') { should cmp 'PRIVATE' }
       its('role') { should be_nil }
-      its('private_ip_google_access') { should cmp true }
+      its('private_ip_google_access') { should cmp options[:restricted_apis] }
       its('private_ipv6_google_access') { should cmp 'DISABLE_GOOGLE_ACCESS' }
       its('log_config.enable') { should cmp options[:flow_logs] }
       if secondaries.empty?

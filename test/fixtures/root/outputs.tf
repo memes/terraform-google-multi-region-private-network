@@ -18,10 +18,6 @@ output "cidrs_json" {
   value = jsonencode(var.cidrs)
 }
 
-output "routes_json" {
-  value = jsonencode(var.routes)
-}
-
 output "options_json" {
   value = jsonencode(var.options)
 }
