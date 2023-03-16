@@ -23,6 +23,7 @@ control 'nats' do
         expect(routers.count).to cmp expected_count
         nats = google_compute_router_nats(project: project_id, region: region, router: routers.names.first)
         expect(nats.count).to cmp expected_count
+        expect(nats.log_configs.first.enable).to eq options[:nat_logs] if nats.count.positive?
       end
     end
   end

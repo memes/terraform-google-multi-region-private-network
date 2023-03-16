@@ -9,6 +9,5 @@ module "test" {
   description = var.description
   regions     = var.regions
   cidrs       = var.cidrs
-  routes      = var.routes
   options     = var.options
 }

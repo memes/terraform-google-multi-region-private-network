@@ -61,15 +61,6 @@ variable "cidrs" {
   EOD
 }
 
-variable "routes" {
-  type        = list(map(string))
-  default     = []
-  description = <<-EOD
-  An optional set of routes to add to the VPC network. Format is the same as the
-  `routes` variable for Google's network module.
-  EOD
-}
-
 variable "options" {
   type = object({
     mtu                   = number
@@ -79,6 +70,7 @@ variable "options" {
     nat                   = bool
     nat_tags              = set(string)
     flow_logs             = bool
+    nat_logs              = bool
   })
   default = {
     mtu                   = 1460
@@ -88,6 +80,7 @@ variable "options" {
     nat                   = false
     nat_tags              = null
     flow_logs             = false
+    nat_logs              = false
   }
   description = <<-EOD
   The set of options to use when creating the VPC network.

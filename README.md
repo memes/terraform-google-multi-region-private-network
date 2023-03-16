@@ -4,18 +4,32 @@
 ![Maintenance](https://img.shields.io/maintenance/yes/2023)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-This Terraform module creates a private global VPC network with subnets in the
-specified regions, with each subnet receiving a CIDR of specified size. Unless
-the default configuration is changed, this module will create a VPC network with
-the following properties:
+This Terraform module creates an opinionated private global VPC network that spans
+the regions provided, with each subnet receiving a calculated CIDR of requested
+size from the network CIDR.
 
-* A subnet defined in each region specified, with primary and secondary ranges
-  sectioned from a common CIDR
+The default configuration will create a VPC network with the following properties:
+
+* For each region, a `/24` subnet from `172.16.0.0/12`, with no secondary ranges
 * Private by default
   * Default route to internet (0.0.0.0/0) is deleted
-  * Private Google API access is enabled in each subnet
+  * Private Google API access is enabled to support VPC Service Controls
   * Private connectivity route is added to support VPC Service Controls
-    > NOTE: DNS is not managed by this module; see [restricted-apis-dns]
+    > NOTE: Private Cloud DNS zones and bastions are not managed by this module;
+    > see [restricted-apis-dns] and [private-bastion] for those.
+
+Optionally, a Cloud NAT gateway can be added to each region to allow for controlled
+egress traffic.
+
+## Opinions
+
+1. The network should be defined as a CIDR; the module will allocate sub-CIDRs to
+   regions as needed.
+2. The network will be **private** by default
+3. Module consumers can override CIDRs, and option flags, but when they do they
+   must explicitly set all the option flags. Nothing is inferred by omission.
+4. Firewall rules, additional routes, and other per-application settings should
+   not be managed by this module.
 
 > NOTE: The intent of this module is to easily repeat common VPC network patterns
 > I use to deploy in Google Cloud; it is not a general purpose VPC network creation
@@ -42,7 +56,7 @@ the following properties:
 ```hcl
 module "vpc" {
     source = "memes/multi-region-private-network/google"
-    version = "1.0.2"
+    version = "2.0.0"
     project_id = "my-project-id"
     name = "internal-us"
     regions = ["us-east1", "us-west1"]
@@ -60,7 +74,6 @@ module "vpc" {
 |VPC routing mode|&check;|GLOBAL|
 |Default internet route|&check;|Deleted; VPC will not route to internet unless a custom route is added|
 |Restricted API route|&check;|A route for restricted Google API endpoints is added|
-|Additional Routes|&check;|None added|
 |MTU|&check;|1460|
 |Cloud NAT|&check;|Not enabled|
 |Restricted Google API DNS zone(s)||Not managed by this module; see [restricted-apis-dns]|
@@ -70,7 +83,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "1.0.2"
+    version    = "2.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -103,7 +116,6 @@ module "vpc" {
 |VPC routing mode|&check;|GLOBAL|
 |Default internet route|&check;|Not deleted - Cloud NAT requires a default internet route be in place|
 |Restricted API route|&check;|A route for restricted Google API endpoints is added|
-|Additional Routes|&check;|None added|
 |MTU|&check;|1460|
 |Cloud NAT|&check;|A Cloud Router and Cloud NAT will be created in each region|
 |Restricted Google API DNS zone(s)||Not managed by this module; see [restricted-apis-dns]|
@@ -113,7 +125,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "1.0.2"
+    version    = "2.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
@@ -122,6 +134,9 @@ module "vpc" {
         restricted_apis       = true
         routing_mode          = "GLOBAL"
         nat                   = true
+        nat_tags              = null
+        flow_logs             = null
+        nat_logs              = null
     }
 }
 ```
@@ -139,13 +154,18 @@ module "vpc" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_nat"></a> [nat](#module\_nat) | terraform-google-modules/cloud-router/google | 4.0.0 |
-| <a name="module_network"></a> [network](#module\_network) | terraform-google-modules/network/google | 6.0.1 |
 | <a name="module_regions"></a> [regions](#module\_regions) | memes/region-detail/google | 1.1.0 |
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [google_compute_network.network](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network) | resource |
+| [google_compute_route.restricted_apis](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
+| [google_compute_route.tagged_nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
+| [google_compute_router.nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router) | resource |
+| [google_compute_router_nat.nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_nat) | resource |
+| [google_compute_subnetwork.subnet](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_subnetwork) | resource |
 
 ## Inputs
 
@@ -156,8 +176,7 @@ No resources.
 | <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | Sets the primary CIDR and regional subnet size to use with the network, and any<br>optional secondary CIDRs and sizes. | <pre>object({<br>    primary             = string<br>    primary_subnet_size = number<br>    secondaries = map(object({<br>      cidr        = string<br>      subnet_size = number<br>    }))<br>  })</pre> | <pre>{<br>  "primary": "172.16.0.0/12",<br>  "primary_subnet_size": 24,<br>  "secondaries": {}<br>}</pre> | no |
 | <a name="input_description"></a> [description](#input\_description) | A descriptive value to apply to the VPC network. Default value is 'custom vpc'. | `string` | `"custom vpc"` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name to use when naming resources managed by this module. Must be RFC1035<br>compliant and between 1 and 55 characters in length, inclusive. | `string` | `"restricted"` | no |
-| <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. | <pre>object({<br>    mtu                   = number<br>    delete_default_routes = bool<br>    restricted_apis       = bool<br>    routing_mode          = string<br>    nat                   = bool<br>    nat_tags              = set(string)<br>    flow_logs             = bool<br>  })</pre> | <pre>{<br>  "delete_default_routes": true,<br>  "flow_logs": false,<br>  "mtu": 1460,<br>  "nat": false,<br>  "nat_tags": null,<br>  "restricted_apis": true,<br>  "routing_mode": "GLOBAL"<br>}</pre> | no |
-| <a name="input_routes"></a> [routes](#input\_routes) | An optional set of routes to add to the VPC network. Format is the same as the<br>`routes` variable for Google's network module. | `list(map(string))` | `[]` | no |
+| <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. | <pre>object({<br>    mtu                   = number<br>    delete_default_routes = bool<br>    restricted_apis       = bool<br>    routing_mode          = string<br>    nat                   = bool<br>    nat_tags              = set(string)<br>    flow_logs             = bool<br>    nat_logs              = bool<br>  })</pre> | <pre>{<br>  "delete_default_routes": true,<br>  "flow_logs": false,<br>  "mtu": 1460,<br>  "nat": false,<br>  "nat_logs": false,<br>  "nat_tags": null,<br>  "restricted_apis": true,<br>  "routing_mode": "GLOBAL"<br>}</pre> | no |
 
 ## Outputs
 
