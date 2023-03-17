@@ -5,8 +5,8 @@ output "self_link" {
   value = module.test.self_link
 }
 
-output "subnets_json" {
-  value = jsonencode(module.test.subnets)
+output "subnets_by_name_json" {
+  value = jsonencode(module.test.subnets_by_name)
 }
 
 output "subnets_by_region_json" {

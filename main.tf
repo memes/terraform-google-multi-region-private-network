@@ -9,12 +9,14 @@ terraform {
 }
 
 locals {
-  primary_ranges = cidrsubnets(var.cidrs.primary, [for r in var.regions : var.cidrs.primary_subnet_size - tonumber(split("/", var.cidrs.primary)[1])]...)
+  primary_ipv4_cidrs = cidrsubnets(var.cidrs.primary_ipv4_cidr, [for r in var.regions : var.cidrs.primary_ipv4_subnet_size - tonumber(split("/", var.cidrs.primary_ipv4_cidr)[1])]...)
   subnets = { for i, region in var.regions :
     format("%s-%s", var.name, module.regions.results[region].abbreviation) => {
-      region           = region
-      primary_range    = local.primary_ranges[i]
-      secondary_ranges = var.cidrs.secondaries == null ? {} : { for k, v in var.cidrs.secondaries : k => cidrsubnet(v.cidr, v.subnet_size - tonumber(split("/", v.cidr)[1]), i) }
+      region                = region
+      primary_ipv4_cidr     = local.primary_ipv4_cidrs[i]
+      secondary_ipv4_ranges = var.cidrs.secondaries == null ? {} : { for k, v in var.cidrs.secondaries : k => cidrsubnet(v.ipv4_cidr, v.ipv4_subnet_size - tonumber(split("/", v.ipv4_cidr)[1]), i) }
+      stack_type            = var.options.ipv6_ula ? "IPV4_IPV6" : "IPV4_ONLY"
+      ipv6_access_type      = var.options.ipv6_ula ? "INTERNAL" : null
     }
   }
 }
@@ -33,19 +35,25 @@ resource "google_compute_network" "network" {
   routing_mode                    = var.options.routing_mode
   mtu                             = var.options.mtu
   delete_default_routes_on_create = var.options.delete_default_routes
+  enable_ula_internal_ipv6        = var.options.ipv6_ula
+  internal_ipv6_range             = var.options.ipv6_ula ? var.cidrs.primary_ipv6_cidr : null
 }
 
 resource "google_compute_subnetwork" "subnet" {
-  for_each                 = local.subnets
-  project                  = var.project_id
-  name                     = each.key
-  network                  = google_compute_network.network.id
-  ip_cidr_range            = each.value.primary_range
-  private_ip_google_access = var.options.restricted_apis
-  region                   = each.value.region
+  provider                   = google-beta
+  for_each                   = local.subnets
+  project                    = var.project_id
+  name                       = each.key
+  network                    = google_compute_network.network.id
+  ip_cidr_range              = each.value.primary_ipv4_cidr
+  private_ip_google_access   = var.options.restricted_apis
+  private_ipv6_google_access = var.options.restricted_apis && var.options.ipv6_ula ? "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE" : null
+  region                     = each.value.region
+  stack_type                 = each.value.stack_type
+  ipv6_access_type           = each.value.ipv6_access_type
 
   dynamic "secondary_ip_range" {
-    for_each = each.value.secondary_ranges
+    for_each = each.value.secondary_ipv4_ranges
     content {
       range_name    = secondary_ip_range.key
       ip_cidr_range = secondary_ip_range.value
