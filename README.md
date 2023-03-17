@@ -19,15 +19,15 @@ The default configuration will create a VPC network with the following propertie
     > see [restricted-apis-dns] and [private-bastion] for those.
 
 Optionally, a Cloud NAT gateway can be added to each region to allow for controlled
-egress traffic.
+egress traffic, and IPv6 ULA addressing enabled.
 
 ## Opinions
 
 1. The network should be defined as a CIDR; the module will allocate sub-CIDRs to
    regions as needed.
 2. The network will be **private** by default
-3. Module consumers can override CIDRs, and option flags, but when they do they
-   must explicitly set all the option flags. Nothing is inferred by omission.
+3. Module consumers can override CIDRs, and option flags, but must explicitly set
+   all the `cidrs` and/or `options` fields. Nothing is inferred by omission.
 4. Firewall rules, additional routes, and other per-application settings should
    not be managed by this module.
 
@@ -39,45 +39,46 @@ egress traffic.
 
 ### East-west dual region private VPC network
 
-|Item|Managed by module|Description|
+|Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
 |Regions|&check;|`us-east1` and `us-west1`|
-|Primary CIDR|&check;|`172.16.x.0/12`, split into a `/24` per region|
-|Secondary CIDRs|&check;|None added|
+|Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
+|Primary IPv6 CIDR||Not enabled|
+|Secondary IPv4 CIDRs||None added|
 |VPC routing mode|&check;|GLOBAL|
-|Default internet route|&check;|Deleted; VPC will not route to internet unless a custom route is added|
+|Default internet route|&check;|Deleted; VPC will not route to internet|
 |Restricted API route|&check;|A route for restricted Google API endpoints is added|
-|Additional Routes|&check;|None added|
 |MTU|&check;|1460|
-|Cloud NAT|&check;|Not enabled|
-|Restricted Google API DNS zone(s)||Not managed by this module; see [restricted-apis-dns]|
-|Bastion||Not managed by this module; see [private-bastion]|
+|Cloud NAT|||
+|*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
+|*Bastion*||*Not managed by this module; see [private-bastion]*|
 
 ```hcl
 module "vpc" {
-    source = "memes/multi-region-private-network/google"
-    version = "2.0.0"
+    source     = "memes/multi-region-private-network/google"
+    version    = "2.0.0"
     project_id = "my-project-id"
-    name = "internal-us"
-    regions = ["us-east1", "us-west1"]
+    name       = "internal-us"
+    regions    = ["us-east1", "us-west1"]
 }
 ```
 
 ### East-west dual region with secondary ranges for GKE
 
 <!-- markdownlint-disable MD033 MD034-->
-|Item|Managed by module|Description|
+|Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
 |Regions|&check;|`us-east1` and `us-west1`|
-|Primary CIDR|&check;|`172.16.x.0/24` per region|
-|Secondary CIDRs|&check;|&bullet; `pods` CIDR `10.x.0.0/16` per region<br/>&bullet; `services` CIDR `10.100.x.0/24` per region|
+|Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
+|Primary IPv6 CIDR||Not enabled|
+|Secondary IPv4 CIDRs|&check;|&bullet; `pods` CIDR `10.x.0.0/16` per region<br/>&bullet; `services` CIDR `10.100.x.0/24` per region|
 |VPC routing mode|&check;|GLOBAL|
-|Default internet route|&check;|Deleted; VPC will not route to internet unless a custom route is added|
+|Default internet route|&check;|Deleted; VPC will not route to internet|
 |Restricted API route|&check;|A route for restricted Google API endpoints is added|
 |MTU|&check;|1460|
-|Cloud NAT|&check;|Not enabled|
-|Restricted Google API DNS zone(s)||Not managed by this module; see [restricted-apis-dns]|
-|Bastion||Not managed by this module; see [private-bastion]|
+|Cloud NAT||Not enabled|
+|*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
+|*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
 ```hcl
@@ -87,20 +88,19 @@ module "vpc" {
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
-        primary_cidr        = "172.16.0.0/12"
-        primary_subnet_size = 24
-        secondary_ranges    = [
-            {
-                name        = "pods"
-                cidr        = "10.0.0.0/8"
-                subnet_size = 16
-            },
-            {
-                name        = "services"
-                cidr        = "10.100.0.0/16"
-                subnet_size = 24
-            },
-        ]
+        primary_ipv4_cidr        = "172.16.0.0/12"
+        primary_ipv4_subnet_size = 24
+        primary_ipv6_cidr        = null
+        secondaries = {
+            pods = {
+                ipv4_cidr        = "10.0.0.0/8"
+                ipv4_subnet_size = 16
+            }
+            services = {
+                ipv4_cidr        = "10.100.0.0/16"
+                ipv4_subnet_size = 24
+            }
+        }
     }
 }
 ```
@@ -111,15 +111,16 @@ module "vpc" {
 |Item|Managed by module|Description|
 |----|-----------------|-----------|
 |Regions|&check;|`us-east1` and `us-west1`|
-|Primary CIDR|&check;|`172.16.x.0/24` per region|
-|Secondary CIDRs|&check;|None added|
+|Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
+|Primary IPv6 CIDR||Not enabled|
+|Secondary IPv4 CIDRs||None added|
 |VPC routing mode|&check;|GLOBAL|
 |Default internet route|&check;|Not deleted - Cloud NAT requires a default internet route be in place|
 |Restricted API route|&check;|A route for restricted Google API endpoints is added|
 |MTU|&check;|1460|
 |Cloud NAT|&check;|A Cloud Router and Cloud NAT will be created in each region|
-|Restricted Google API DNS zone(s)||Not managed by this module; see [restricted-apis-dns]|
-|Bastion||Not managed by this module; see [private-bastion]|
+|*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
+|*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
 ```hcl
@@ -137,6 +138,89 @@ module "vpc" {
         nat_tags              = null
         flow_logs             = null
         nat_logs              = null
+        ipv6_ula              = false
+    }
+}
+```
+
+### East-west dual region with auto-allocated IPv6 CIDR
+
+<!-- markdownlint-disable MD033 MD034-->
+|Item|Enable/managed by module|Description|
+|----|-----------------|-----------|
+|Regions|&check;|`us-east1` and `us-west1`|
+|Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
+|Primary IPv6 CIDR|&check;|Auto-allocated `/48` from `fd20::/20` (`/64` per region)|
+|Secondary IPv4 CIDRs||None added|
+|VPC routing mode|&check;|GLOBAL|
+|Default internet route|&check;|Deleted; VPC will not route to internet|
+|Restricted API route|&check;|A route for restricted Google API endpoints is added|
+|MTU|&check;|1460|
+|Cloud NAT||Not enabled|
+|*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
+|*Bastion*||*Not managed by this module; see [private-bastion]*|
+<!-- markdownlint-enable MD033 MD034-->
+
+```hcl
+module "vpc" {
+    source     = "memes/multi-region-private-network/google"
+    version    = "2.0.0"
+    project_id = "my-project-id"
+    regions    = ["us-east1", "us-west1"]
+    options    = {
+        mtu                   = 1460
+        delete_default_routes = true
+        restricted_apis       = true
+        routing_mode          = "GLOBAL"
+        nat                   = true
+        nat_tags              = null
+        flow_logs             = null
+        nat_logs              = null
+        ipv6_ula              = true
+    }
+}
+```
+
+### East-west dual region with explicit IPv6 CIDR
+
+<!-- markdownlint-disable MD033 MD034-->
+|Item|Enable/managed by module|Description|
+|----|-----------------|-----------|
+|Regions|&check;|`us-east1` and `us-west1`|
+|Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
+|Primary IPv6 CIDR|&check;|`fd20:0:0309:0:0:0:0:0/48` (`/64` per region)|
+|Secondary IPv4 CIDRs||None added|
+|VPC routing mode|&check;|GLOBAL|
+|Default internet route|&check;|Deleted; VPC will not route to internet|
+|Restricted API route|&check;|A route for restricted Google API endpoints is added|
+|MTU|&check;|1460|
+|Cloud NAT||Not enabled|
+|*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
+|*Bastion*||*Not managed by this module; see [private-bastion]*|
+<!-- markdownlint-enable MD033 MD034-->
+
+```hcl
+module "vpc" {
+    source     = "memes/multi-region-private-network/google"
+    version    = "2.0.0"
+    project_id = "my-project-id"
+    regions    = ["us-east1", "us-west1"]
+    cidrs      = {
+        primary_ipv4_cidr        = "172.16.0.0/12"
+        primary_ipv4_subnet_size = 24
+        primary_ipv6_cidr        = "fd20:0:0309:0:0:0:0:0/48"
+        secondaries = {}
+    }
+    options    = {
+        mtu                   = 1460
+        delete_default_routes = true
+        restricted_apis       = true
+        routing_mode          = "GLOBAL"
+        nat                   = true
+        nat_tags              = null
+        flow_logs             = null
+        nat_logs              = null
+        ipv6_ula              = true
     }
 }
 ```
