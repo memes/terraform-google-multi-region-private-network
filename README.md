@@ -160,12 +160,12 @@ module "vpc" {
 
 | Name | Type |
 |------|------|
+| [google-beta_google_compute_subnetwork.subnet](https://registry.terraform.io/providers/hashicorp/google-beta/latest/docs/resources/google_compute_subnetwork) | resource |
 | [google_compute_network.network](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network) | resource |
 | [google_compute_route.restricted_apis](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
 | [google_compute_route.tagged_nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
 | [google_compute_router.nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router) | resource |
 | [google_compute_router_nat.nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_nat) | resource |
-| [google_compute_subnetwork.subnet](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_subnetwork) | resource |
 
 ## Inputs
 
@@ -173,17 +173,17 @@ module "vpc" {
 |------|-------------|------|---------|:--------:|
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The GCP project identifier where the VPC network will be created. | `string` | n/a | yes |
 | <a name="input_regions"></a> [regions](#input\_regions) | The list of Compute Engine regions in which to create the VPC subnetworks. | `list(string)` | n/a | yes |
-| <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | Sets the primary CIDR and regional subnet size to use with the network, and any<br>optional secondary CIDRs and sizes. | <pre>object({<br>    primary             = string<br>    primary_subnet_size = number<br>    secondaries = map(object({<br>      cidr        = string<br>      subnet_size = number<br>    }))<br>  })</pre> | <pre>{<br>  "primary": "172.16.0.0/12",<br>  "primary_subnet_size": 24,<br>  "secondaries": {}<br>}</pre> | no |
+| <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | Sets the primary IPv4 CIDR and regional subnet size to use with the network,<br>an optional IPv6 ULA CIDR to use with the network, and any optional secondary<br>IPv4 CIDRs and sizes. | <pre>object({<br>    primary_ipv4_cidr        = string<br>    primary_ipv4_subnet_size = number<br>    primary_ipv6_cidr        = string<br>    secondaries = map(object({<br>      ipv4_cidr        = string<br>      ipv4_subnet_size = number<br>    }))<br>  })</pre> | <pre>{<br>  "primary_ipv4_cidr": "172.16.0.0/12",<br>  "primary_ipv4_subnet_size": 24,<br>  "primary_ipv6_cidr": null,<br>  "secondaries": {}<br>}</pre> | no |
 | <a name="input_description"></a> [description](#input\_description) | A descriptive value to apply to the VPC network. Default value is 'custom vpc'. | `string` | `"custom vpc"` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name to use when naming resources managed by this module. Must be RFC1035<br>compliant and between 1 and 55 characters in length, inclusive. | `string` | `"restricted"` | no |
-| <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. | <pre>object({<br>    mtu                   = number<br>    delete_default_routes = bool<br>    restricted_apis       = bool<br>    routing_mode          = string<br>    nat                   = bool<br>    nat_tags              = set(string)<br>    flow_logs             = bool<br>    nat_logs              = bool<br>  })</pre> | <pre>{<br>  "delete_default_routes": true,<br>  "flow_logs": false,<br>  "mtu": 1460,<br>  "nat": false,<br>  "nat_logs": false,<br>  "nat_tags": null,<br>  "restricted_apis": true,<br>  "routing_mode": "GLOBAL"<br>}</pre> | no |
+| <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. | <pre>object({<br>    mtu                   = number<br>    delete_default_routes = bool<br>    restricted_apis       = bool<br>    routing_mode          = string<br>    nat                   = bool<br>    nat_tags              = set(string)<br>    flow_logs             = bool<br>    nat_logs              = bool<br>    ipv6_ula              = bool<br>  })</pre> | <pre>{<br>  "delete_default_routes": true,<br>  "flow_logs": false,<br>  "ipv6_ula": false,<br>  "mtu": 1460,<br>  "nat": false,<br>  "nat_logs": false,<br>  "nat_tags": null,<br>  "restricted_apis": true,<br>  "routing_mode": "GLOBAL"<br>}</pre> | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | <a name="output_self_link"></a> [self\_link](#output\_self\_link) | The fully-qualified self-link URI of the created VPC network. |
-| <a name="output_subnets"></a> [subnets](#output\_subnets) | A map of subnet name to region, self\_link, and CIDRs. |
+| <a name="output_subnets_by_name"></a> [subnets\_by\_name](#output\_subnets\_by\_name) | A map of subnet name to region, self\_link, and CIDRs. |
 | <a name="output_subnets_by_region"></a> [subnets\_by\_region](#output\_subnets\_by\_region) | A map of subnet region to name, self\_link, and CIDRs. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 <!-- markdownlint-enable MD033 MD034 -->

@@ -43,21 +43,24 @@ variable "regions" {
 
 variable "cidrs" {
   type = object({
-    primary             = string
-    primary_subnet_size = number
+    primary_ipv4_cidr        = string
+    primary_ipv4_subnet_size = number
+    primary_ipv6_cidr        = string
     secondaries = map(object({
-      cidr        = string
-      subnet_size = number
+      ipv4_cidr        = string
+      ipv4_subnet_size = number
     }))
   })
   default = {
-    primary             = "172.16.0.0/12"
-    primary_subnet_size = 24
-    secondaries         = {}
+    primary_ipv4_cidr        = "172.16.0.0/12"
+    primary_ipv4_subnet_size = 24
+    primary_ipv6_cidr        = null
+    secondaries              = {}
   }
   description = <<-EOD
-  Sets the primary CIDR and regional subnet size to use with the network, and any
-  optional secondary CIDRs and sizes.
+  Sets the primary IPv4 CIDR and regional subnet size to use with the network,
+  an optional IPv6 ULA CIDR to use with the network, and any optional secondary
+  IPv4 CIDRs and sizes.
   EOD
 }
 
@@ -71,6 +74,7 @@ variable "options" {
     nat_tags              = set(string)
     flow_logs             = bool
     nat_logs              = bool
+    ipv6_ula              = bool
   })
   default = {
     mtu                   = 1460
@@ -81,6 +85,7 @@ variable "options" {
     nat_tags              = null
     flow_logs             = false
     nat_logs              = false
+    ipv6_ula              = false
   }
   description = <<-EOD
   The set of options to use when creating the VPC network.

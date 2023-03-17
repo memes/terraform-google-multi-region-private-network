@@ -5,12 +5,13 @@ output "self_link" {
   EOD
 }
 
-output "subnets" {
+output "subnets_by_name" {
   value = { for k, v in google_compute_subnetwork.subnet : v.name => {
-    region          = v.region
-    self_link       = v.self_link
-    primary_cidr    = v.ip_cidr_range
-    secondary_cidrs = v.secondary_ip_range
+    region               = v.region
+    self_link            = v.self_link
+    primary_ipv4_cidr    = v.ip_cidr_range
+    primary_ipv6_cidr    = v.ipv6_cidr_range
+    secondary_ipv4_cidrs = { for entry in v.secondary_ip_range : entry.range_name => entry.ip_cidr_range }
   } }
   description = <<-EOD
   A map of subnet name to region, self_link, and CIDRs.
@@ -20,10 +21,11 @@ output "subnets" {
 
 output "subnets_by_region" {
   value = { for k, v in google_compute_subnetwork.subnet : v.region => {
-    name            = v.name
-    self_link       = v.self_link
-    primary_cidr    = v.ip_cidr_range
-    secondary_cidrs = v.secondary_ip_range
+    name                 = v.name
+    self_link            = v.self_link
+    primary_ipv4_cidr    = v.ip_cidr_range
+    primary_ipv6_cidr    = v.ipv6_cidr_range
+    secondary_ipv4_cidrs = { for entry in v.secondary_ip_range : entry.range_name => entry.ip_cidr_range }
   } }
   description = <<-EOD
   A map of subnet region to name, self_link, and CIDRs.
