@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v1.0.2...v2.0.0) (2023-03-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* Inputs and outputs have changed for consistent nameing of IPv4 and IPv6 resources.
+* Support for arbitrary routes has been removed from module
+
+### Features
+
+* Initial support for IPv6 ([49c70a6](https://github.com/memes/terraform-google-multi-region-private-network/commit/49c70a6d947d55fa98b1668fe29b1ff595066a7c))
+* Remove Google network and NAT modules ([ac0431e](https://github.com/memes/terraform-google-multi-region-private-network/commit/ac0431e767122adca007f109df70999402e19327))
+
 ## [1.0.2](https://github.com/memes/terraform-google-multi-region-private-network/compare/v1.0.1...v1.0.2) (2023-03-06)
 
 
