@@ -28,7 +28,7 @@ control 'subnets' do
   secondaries = cidrs[:secondaries] || {}
   options = JSON.parse(input('output_options_json'), { symbolize_names: true })
 
-  subnets_by_name.each do |_, v|
+  subnets_by_name.each_value do |v|
     params = v[:self_link].match(SUBNET_MATCHER).named_captures
     subnet = google_compute_subnetwork(project: params['project'], region: params['region'], name: params['name'])
     describe subnet do
