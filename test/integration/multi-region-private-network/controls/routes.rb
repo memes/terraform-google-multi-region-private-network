@@ -36,6 +36,26 @@ control 'restricted-api-route' do
   end
 end
 
+control 'private-api-route' do
+  title 'Ensure route to Google private API endpoint matches expectations'
+  impact 1.0
+  self_link = input('output_self_link')
+  options = JSON.parse(input('output_options_json'), { symbolize_names: true })
+  project_id = input('input_project_id')
+  name = input('input_name')
+
+  expected_restricted_apis_count = options[:private_apis] ? 1 : 0
+  describe google_compute_routes(project: project_id).where(network: self_link, dest_range: '199.36.153.8/30',
+                                                            name: "#{name}-private-apis") do
+    its('count') { should eq expected_restricted_apis_count }
+    unless expected_restricted_apis_count.zero?
+      its('names') { should include "#{name}-private-apis" }
+      its('descriptions') { should include 'Route for private Google API access' }
+      its('next_hop_gateways') { should include "https://www.googleapis.com/compute/v1/projects/#{project_id}/global/gateways/default-internet-gateway" }
+    end
+  end
+end
+
 control 'tagged-nat-route' do
   title 'Ensure tagged route to NAT matches expectations'
   impact 1.0
