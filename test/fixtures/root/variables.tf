@@ -44,6 +44,7 @@ variable "options" {
     flow_logs             = bool
     nat_logs              = bool
     ipv6_ula              = bool
+    private_apis          = bool
   })
   default = {
     mtu                   = 1460
@@ -55,5 +56,6 @@ variable "options" {
     flow_logs             = false
     nat_logs              = false
     ipv6_ula              = false
+    private_apis          = false
   }
 }

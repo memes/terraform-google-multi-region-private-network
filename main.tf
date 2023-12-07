@@ -46,8 +46,8 @@ resource "google_compute_subnetwork" "subnet" {
   name                       = each.key
   network                    = google_compute_network.network.id
   ip_cidr_range              = each.value.primary_ipv4_cidr
-  private_ip_google_access   = var.options.restricted_apis
-  private_ipv6_google_access = var.options.restricted_apis && var.options.ipv6_ula ? "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE" : null
+  private_ip_google_access   = var.options.restricted_apis || var.options.private_apis
+  private_ipv6_google_access = (var.options.restricted_apis || var.options.private_apis) && var.options.ipv6_ula ? "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE" : null
   region                     = each.value.region
   stack_type                 = each.value.stack_type
   ipv6_access_type           = each.value.ipv6_access_type
@@ -78,6 +78,16 @@ resource "google_compute_route" "restricted_apis" {
   network          = google_compute_network.network.name
   description      = "Route for restricted Google API access"
   dest_range       = "199.36.153.4/30"
+  next_hop_gateway = "default-internet-gateway"
+}
+
+resource "google_compute_route" "private_apis" {
+  count            = var.options.private_apis ? 1 : 0
+  project          = var.project_id
+  name             = format("%s-private-apis", var.name)
+  network          = google_compute_network.network.name
+  description      = "Route for private Google API access"
+  dest_range       = "199.36.153.8/30"
   next_hop_gateway = "default-internet-gateway"
 }
 
