@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v2.0.0...v2.1.0) (2023-12-07)
+
+
+### Features
+
+* Support Private Google APIs access ([779cc5b](https://github.com/memes/terraform-google-multi-region-private-network/commit/779cc5b5891677f28d366938b58d6a9106bc7edd)), closes [#46](https://github.com/memes/terraform-google-multi-region-private-network/issues/46)
+
 ## [2.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v1.0.2...v2.0.0) (2023-03-17)
 
 
