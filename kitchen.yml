@@ -35,7 +35,7 @@ platforms:
         name: mrpn-secondary
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24}}}'
+        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24,ipv4_subnet_offset=0,ipv4_subnet_step=1}}}'
   - name: gke
     driver:
       root_module_directory: test/fixtures/root
@@ -43,7 +43,7 @@ platforms:
         name: mrpn-gke
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv6_cidr=null,secondaries={pods={ipv4_cidr=\"10.0.0.0/8\",ipv4_subnet_size=14},services={ipv4_cidr=\"10.8.0.0/16\",ipv4_subnet_size=20}}}'
+        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=null,secondaries={pods={ipv4_cidr=\"10.0.0.0/8\",ipv4_subnet_size=14,ipv4_subnet_offset=0,ipv4_subnet_step=1},services={ipv4_cidr=\"10.8.0.0/16\",ipv4_subnet_size=20,ipv4_subnet_offset=0,ipv4_subnet_step=1}}}'
   - name: mtu
     driver:
       root_module_directory: test/fixtures/root
@@ -131,7 +131,7 @@ platforms:
         name: mrpn-ipv6-manual
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv6_cidr=\"fd20:39b:0309:0:0:0:0:0/48\",secondaries={}}'
+        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=\"fd20:39b:0309:0:0:0:0:0/48\",secondaries={}}'
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=true,private_apis=false}'
         # yamllint enable rule:line-length
   - name: private_apis
@@ -142,7 +142,6 @@ platforms:
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=false,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=true}'
-        # yamllint enable rule:line-length
   - name: private_restricted_apis
     driver:
       root_module_directory: test/fixtures/root
@@ -151,7 +150,22 @@ platforms:
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=true,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=true}'
-        # yamllint enable rule:line-length
+  - name: primary_offset_step
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-pri-offset-step
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=10,primary_ipv4_subnet_step=10,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24,ipv4_subnet_offset=0,ipv4_subnet_step=1}}}'
+  - name: primary_secondary_offset_step
+    driver:
+      root_module_directory: test/fixtures/root
+      variables:
+        name: mrpn-prim-sec-offset-step
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=7,primary_ipv4_subnet_step=7,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24,ipv4_subnet_offset=5,ipv4_subnet_step=9}}}'
 
 suites:
   - name: multi-region-private-network
