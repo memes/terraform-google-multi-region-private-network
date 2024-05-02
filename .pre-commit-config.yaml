@@ -2,35 +2,39 @@
 ---
 repos:
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.33.0
+    rev: v1.35.1
     hooks:
       - id: yamllint
         files: \.(yml|yaml|talismanrc)$
         types: [file, yaml]
         entry: yamllint --strict
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.83.6
+    rev: v1.89.1
     hooks:
       - id: terraform_fmt
       - id: terraform_docs
         args: ['--args=--sort-by=required --hide=providers']
-  - repo: https://github.com/mattlqx/pre-commit-ruby
-    rev: v1.3.5
-    hooks:
-      - id: rubocop
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
+    rev: v0.10.0.1
     hooks:
       - id: shellcheck
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
       - id: detect-private-key
       - id: end-of-file-fixer
+      - id: no-commit-to-branch
+        args:
+          - -b
+          - main
       - id: trailing-whitespace
+  - repo: https://github.com/rubocop/rubocop
+    rev: v1.63.4
+    hooks:
+      - id: rubocop
   - repo: https://github.com/thoughtworks/talisman
-    rev: v1.31.0
+    rev: v1.32.0
     hooks:
       - id: talisman-commit
