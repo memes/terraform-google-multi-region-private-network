@@ -57,10 +57,45 @@ egress traffic, and IPv6 ULA addressing enabled.
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
+}
+```
+
+### East-west dual region private VPC network, with primary subnet offset and steps
+
+|Item|Enabled/managed by module|Description|
+|----|-----------------|-----------|
+|Regions|&check;|`us-east1` and `us-west1`|
+|Primary IPv4 CIDR|&check;|`172.16.0.0/12` (as `172.16.10.0/16`, `172.16.20.0/16`)|
+|Primary IPv6 CIDR||Not enabled|
+|Secondary IPv4 CIDRs||None added|
+|VPC routing mode|&check;|GLOBAL|
+|Default internet route|&check;|Deleted; VPC will not route to internet|
+|Restricted API route|&check;|A route for restricted Google API endpoints is added|
+|Private API route||None added|
+|MTU|&check;|1460|
+|Cloud NAT|||
+|*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
+|*Bastion*||*Not managed by this module; see [private-bastion]*|
+
+```hcl
+module "vpc" {
+    source     = "memes/multi-region-private-network/google"
+    version    = "3.0.0"
+    project_id = "my-project-id"
+    name       = "internal-us"
+    regions    = ["us-east1", "us-west1"]
+    cidrs      = {
+        primary_ipv4_cidr          = "172.16.0.0/12"
+        primary_ipv4_subnet_size   = 24
+        primary_ipv4_subnet_offset = 10
+        primary_ipv4_subnet_step   = 10
+        primary_ipv6_cidr          = null
+        secondaries = {}
+    }
 }
 ```
 
@@ -86,21 +121,27 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
-        primary_ipv4_cidr        = "172.16.0.0/12"
-        primary_ipv4_subnet_size = 24
-        primary_ipv6_cidr        = null
+        primary_ipv4_cidr          = "172.16.0.0/12"
+        primary_ipv4_subnet_size   = 24
+        primary_ipv4_subnet_offset = 0
+        primary_ipv4_subnet_step   = 1
+        primary_ipv6_cidr          = null
         secondaries = {
             pods = {
-                ipv4_cidr        = "10.0.0.0/8"
-                ipv4_subnet_size = 16
+                ipv4_cidr          = "10.0.0.0/8"
+                ipv4_subnet_size   = 16
+                ipv4_subnet_offset = 0
+                ipv4_subnet_step   = 1
             }
             services = {
                 ipv4_cidr        = "10.100.0.0/16"
                 ipv4_subnet_size = 24
+                ipv4_subnet_offset = 0
+                ipv4_subnet_step   = 1
             }
         }
     }
@@ -129,7 +170,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
@@ -169,7 +210,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
@@ -209,13 +250,15 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
-        primary_ipv4_cidr        = "172.16.0.0/12"
-        primary_ipv4_subnet_size = 24
-        primary_ipv6_cidr        = "fd20:0:0309:0:0:0:0:0/48"
+        primary_ipv4_cidr          = "172.16.0.0/12"
+        primary_ipv4_subnet_size   = 24
+        primary_ipv4_subnet_offset = 0
+        primary_ipv4_subnet_step   = 1
+        primary_ipv6_cidr          = "fd20:0:0309:0:0:0:0:0/48"
         secondaries = {}
     }
     options    = {
@@ -255,13 +298,15 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
-        primary_ipv4_cidr        = "172.16.0.0/12"
-        primary_ipv4_subnet_size = 24
-        primary_ipv6_cidr        = null
+        primary_ipv4_cidr          = "172.16.0.0/12"
+        primary_ipv4_subnet_size   = 24
+        primary_ipv4_subnet_offset = 0
+        primary_ipv4_subnet_step   = 1
+        primary_ipv6_cidr          = null
         secondaries = {}
     }
     options    = {
@@ -301,13 +346,15 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "2.1.0"
+    version    = "3.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
-        primary_ipv4_cidr        = "172.16.0.0/12"
-        primary_ipv4_subnet_size = 24
-        primary_ipv6_cidr        = null
+        primary_ipv4_cidr          = "172.16.0.0/12"
+        primary_ipv4_subnet_size   = 24
+        primary_ipv4_subnet_offset = 0
+        primary_ipv4_subnet_step   = 1
+        primary_ipv6_cidr          = null
         secondaries = {}
     }
     options    = {
@@ -358,7 +405,7 @@ module "vpc" {
 |------|-------------|------|---------|:--------:|
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The GCP project identifier where the VPC network will be created. | `string` | n/a | yes |
 | <a name="input_regions"></a> [regions](#input\_regions) | The list of Compute Engine regions in which to create the VPC subnetworks. | `list(string)` | n/a | yes |
-| <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | Sets the primary IPv4 CIDR and regional subnet size to use with the network,<br>an optional IPv6 ULA CIDR to use with the network, and any optional secondary<br>IPv4 CIDRs and sizes. | <pre>object({<br>    primary_ipv4_cidr        = string<br>    primary_ipv4_subnet_size = number<br>    primary_ipv6_cidr        = string<br>    secondaries = map(object({<br>      ipv4_cidr        = string<br>      ipv4_subnet_size = number<br>    }))<br>  })</pre> | <pre>{<br>  "primary_ipv4_cidr": "172.16.0.0/12",<br>  "primary_ipv4_subnet_size": 24,<br>  "primary_ipv6_cidr": null,<br>  "secondaries": {}<br>}</pre> | no |
+| <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | Sets the primary IPv4 CIDR and regional subnet size to use with the network,<br>an optional IPv6 ULA CIDR to use with the network, and any optional secondary<br>IPv4 CIDRs and sizes. | <pre>object({<br>    primary_ipv4_cidr          = string<br>    primary_ipv4_subnet_size   = number<br>    primary_ipv4_subnet_offset = number<br>    primary_ipv4_subnet_step   = number<br>    primary_ipv6_cidr          = string<br>    secondaries = map(object({<br>      ipv4_cidr          = string<br>      ipv4_subnet_size   = number<br>      ipv4_subnet_offset = number<br>      ipv4_subnet_step   = number<br>    }))<br>  })</pre> | <pre>{<br>  "primary_ipv4_cidr": "172.16.0.0/12",<br>  "primary_ipv4_subnet_offset": 0,<br>  "primary_ipv4_subnet_size": 24,<br>  "primary_ipv4_subnet_step": 1,<br>  "primary_ipv6_cidr": null,<br>  "secondaries": {}<br>}</pre> | no |
 | <a name="input_description"></a> [description](#input\_description) | A descriptive value to apply to the VPC network. Default value is 'custom vpc'. | `string` | `"custom vpc"` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name to use when naming resources managed by this module. Must be RFC1035<br>compliant and between 1 and 55 characters in length, inclusive. | `string` | `"restricted"` | no |
 | <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. | <pre>object({<br>    mtu                   = number<br>    delete_default_routes = bool<br>    restricted_apis       = bool<br>    routing_mode          = string<br>    nat                   = bool<br>    nat_tags              = set(string)<br>    flow_logs             = bool<br>    nat_logs              = bool<br>    ipv6_ula              = bool<br>    private_apis          = bool<br>  })</pre> | <pre>{<br>  "delete_default_routes": true,<br>  "flow_logs": false,<br>  "ipv6_ula": false,<br>  "mtu": 1460,<br>  "nat": false,<br>  "nat_logs": false,<br>  "nat_tags": null,<br>  "private_apis": false,<br>  "restricted_apis": true,<br>  "routing_mode": "GLOBAL"<br>}</pre> | no |

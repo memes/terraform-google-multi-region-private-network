@@ -13,8 +13,8 @@ locals {
   subnets = { for i, region in var.regions :
     format("%s-%s", var.name, module.regions.results[region].abbreviation) => {
       region                = region
-      primary_ipv4_cidr     = local.primary_ipv4_cidrs[i]
-      secondary_ipv4_ranges = var.cidrs.secondaries == null ? {} : { for k, v in var.cidrs.secondaries : k => cidrsubnet(v.ipv4_cidr, v.ipv4_subnet_size - tonumber(split("/", v.ipv4_cidr)[1]), i) }
+      primary_ipv4_cidr     = cidrsubnet(var.cidrs.primary_ipv4_cidr, var.cidrs.primary_ipv4_subnet_size - tonumber(split("/", var.cidrs.primary_ipv4_cidr)[1]), var.cidrs.primary_ipv4_subnet_offset + i * var.cidrs.primary_ipv4_subnet_step)
+      secondary_ipv4_ranges = var.cidrs.secondaries == null ? {} : { for k, v in var.cidrs.secondaries : k => cidrsubnet(v.ipv4_cidr, v.ipv4_subnet_size - tonumber(split("/", v.ipv4_cidr)[1]), v.ipv4_subnet_offset + i * v.ipv4_subnet_step) }
       stack_type            = var.options.ipv6_ula ? "IPV4_IPV6" : "IPV4_ONLY"
       ipv6_access_type      = var.options.ipv6_ula ? "INTERNAL" : null
     }
