@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v2.1.0...v3.0.0) (2024-05-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* Support subnet offsets and steps
+
+### Features
+
+* Support subnet offsets and steps ([84fe4dc](https://github.com/memes/terraform-google-multi-region-private-network/commit/84fe4dcfc6ac84ade83db286df890ffd241e9673))
+
 ## [2.1.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v2.0.0...v2.1.0) (2023-12-07)
 
 
