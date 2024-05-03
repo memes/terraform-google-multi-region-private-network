@@ -11,11 +11,11 @@ SUBNET_SELF_LINK_PATTERN = %r{projects/[a-z][a-z0-9-]{4,28}[a-z0-9]/regions/[a-z
 control 'outputs' do
   title 'Ensure module outputs match expectations'
   impact 1.0
-  self_link = input('output_self_link')
+  network = input('output_self_link')
   subnets_by_name = JSON.parse(input('output_subnets_by_name_json'), { symbolize_names: true })
   subnets_by_region = JSON.parse(input('output_subnets_by_region_json'), { symbolize_names: true })
 
-  describe self_link do
+  describe network do
     it { should_not be_nil }
     it { should match(NETWORK_SELF_LINK_PATTERN) }
   end

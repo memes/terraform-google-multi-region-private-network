@@ -43,19 +43,25 @@ variable "regions" {
 
 variable "cidrs" {
   type = object({
-    primary_ipv4_cidr        = string
-    primary_ipv4_subnet_size = number
-    primary_ipv6_cidr        = string
+    primary_ipv4_cidr          = string
+    primary_ipv4_subnet_size   = number
+    primary_ipv4_subnet_offset = number
+    primary_ipv4_subnet_step   = number
+    primary_ipv6_cidr          = string
     secondaries = map(object({
-      ipv4_cidr        = string
-      ipv4_subnet_size = number
+      ipv4_cidr          = string
+      ipv4_subnet_size   = number
+      ipv4_subnet_offset = number
+      ipv4_subnet_step   = number
     }))
   })
   default = {
-    primary_ipv4_cidr        = "172.16.0.0/12"
-    primary_ipv4_subnet_size = 24
-    primary_ipv6_cidr        = null
-    secondaries              = {}
+    primary_ipv4_cidr          = "172.16.0.0/12"
+    primary_ipv4_subnet_size   = 24
+    primary_ipv4_subnet_offset = 0
+    primary_ipv4_subnet_step   = 1
+    primary_ipv6_cidr          = null
+    secondaries                = {}
   }
   description = <<-EOD
   Sets the primary IPv4 CIDR and regional subnet size to use with the network,

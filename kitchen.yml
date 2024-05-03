@@ -1,9 +1,12 @@
-#
+# Test harness for module.
 ---
 driver:
   name: terraform
-  command_timeout: 600
   verify_version: true
+
+transport:
+  name: terraform
+  command_timeout: 600
 
 provisioner:
   name: terraform
@@ -17,141 +20,174 @@ verifier:
 
 platforms:
   - name: single-region
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-one
         regions: '[\"us-west1\"]'
   - name: dual-region
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-two
         regions: '[\"us-west1\",\"us-central1\"]'
   - name: secondary-range
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-secondary
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24}}}'
+        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24,ipv4_subnet_offset=0,ipv4_subnet_step=1}}}'
   - name: gke
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-gke
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv6_cidr=null,secondaries={pods={ipv4_cidr=\"10.0.0.0/8\",ipv4_subnet_size=14},services={ipv4_cidr=\"10.8.0.0/16\",ipv4_subnet_size=20}}}'
+        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=null,secondaries={pods={ipv4_cidr=\"10.0.0.0/8\",ipv4_subnet_size=14,ipv4_subnet_offset=0,ipv4_subnet_step=1},services={ipv4_cidr=\"10.8.0.0/16\",ipv4_subnet_size=20,ipv4_subnet_offset=0,ipv4_subnet_step=1}}}'
   - name: mtu
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-mtu
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1500,delete_default_routes=true,restricted_apis=true,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: keep-default-routes
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-keep-default-routes
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: disable-restricted-apis
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-disable-restricted-apis
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=false,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: regional-routing
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-regional-routing
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=true,routing_mode=\"REGIONAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: global-nat
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-global-nat
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: regional-nat
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-regional-nat
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"REGIONAL\",nat=true,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: tagged-nat
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-tag-nat
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[\"mrpn-test\"],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: flow-logs
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-flow-logs
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=true,nat_logs=false,ipv6_ula=false,private_apis=false}'
   - name: nat-logs
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-nat-logs
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=false,nat_logs=true,ipv6_ula=false,private_apis=false}'
   - name: ipv6_auto_cidr
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-ipv6-auto
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=true,private_apis=false}'
   - name: ipv6_manual_cidr
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-ipv6-manual
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv6_cidr=\"fd20:39b:0309:0:0:0:0:0/48\",secondaries={}}'
+        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=\"fd20:39b:afc4:0:0:0:0:0/48\",secondaries={}}'
         options: '{mtu=1460,delete_default_routes=false,restricted_apis=true,routing_mode=\"GLOBAL\",nat=true,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=true,private_apis=false}'
         # yamllint enable rule:line-length
   - name: private_apis
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-private-apis
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=false,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=true}'
-        # yamllint enable rule:line-length
   - name: private_restricted_apis
-    driver:
+    transport:
       root_module_directory: test/fixtures/root
+    driver:
       variables:
         name: mrpn-private-restricted-apis
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable-line rule:line-length
         options: '{mtu=1460,delete_default_routes=true,restricted_apis=true,routing_mode=\"GLOBAL\",nat=false,nat_tags=[],flow_logs=false,nat_logs=false,ipv6_ula=false,private_apis=true}'
-        # yamllint enable rule:line-length
+  - name: primary_offset_step
+    transport:
+      root_module_directory: test/fixtures/root
+    driver:
+      variables:
+        name: mrpn-pri-offset-step
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=10,primary_ipv4_subnet_step=10,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24,ipv4_subnet_offset=0,ipv4_subnet_step=1}}}'
+  - name: primary_secondary_offset_step
+    transport:
+      root_module_directory: test/fixtures/root
+    driver:
+      variables:
+        name: mrpn-prim-sec-offset-step
+        regions: '[\"us-west1\",\"us-central1\"]'
+        # yamllint disable-line rule:line-length
+        cidrs: '{primary_ipv4_cidr=\"10.0.0.0/8\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=7,primary_ipv4_subnet_step=7,primary_ipv6_cidr=null,secondaries={test={ipv4_cidr=\"192.168.0.0/16\",ipv4_subnet_size=24,ipv4_subnet_offset=5,ipv4_subnet_step=9}}}'
 
 suites:
   - name: multi-region-private-network
