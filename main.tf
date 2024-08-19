@@ -23,7 +23,7 @@ locals {
 
 module "regions" {
   source  = "memes/region-detail/google"
-  version = "1.1.5"
+  version = "1.1.6"
   regions = var.regions
 }
 
