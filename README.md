@@ -385,7 +385,7 @@ module "vpc" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_regions"></a> [regions](#module\_regions) | memes/region-detail/google | 1.1.5 |
+| <a name="module_regions"></a> [regions](#module\_regions) | memes/region-detail/google | 1.1.6 |
 
 ## Resources
 
