@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v3.0.0...v3.1.0) (2025-01-24)
+
+
+### Features
+
+* Add resource id to output ([156f1f7](https://github.com/memes/terraform-google-multi-region-private-network/commit/156f1f7ed0a8446f996572ecf7eaa47e1984751a))
+
 ## [3.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v2.1.0...v3.0.0) (2024-05-03)
 
 
