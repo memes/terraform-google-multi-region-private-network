@@ -25,11 +25,21 @@ jobs:
           sudo chmod 0755 /usr/local/bin/talisman
       - name: Install terraform-docs
         run: |
-          sudo sh -c 'curl -sL https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz | tar xzf - -C /usr/local/bin'
+          sudo sh -c 'curl -sL https://github.com/terraform-docs/terraform-docs/releases/download/v0.19.0/terraform-docs-v0.19.0-linux-amd64.tar.gz | tar xzf - -C /usr/local/bin'
           sudo chmod 0755 /usr/local/bin/terraform-docs
+      - name: Install tflint
+        run: |
+          curl -sLO https://github.com/terraform-linters/tflint/releases/download/v0.55.0/tflint_linux_amd64.zip
+          unzip tflint_linux_amd64.zip && rm tflint_linux_amd64.zip
+          sudo mv tflint /usr/local/bin/tflint
+          sudo chmod 0755 /usr/local/bin/tflint
+      - name: install opentofu
+        run: |
+          sudo sh -c 'curl -sL https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_linux_amd64.tar.gz | tar xzf - -C /usr/local/bin tofu'
+          sudo chmod 0755 /usr/local/bin/tofu
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3.1'
+          ruby-version: '3.3.6'
           bundler-cache: true
       - uses: actions/setup-python@v5
         with:

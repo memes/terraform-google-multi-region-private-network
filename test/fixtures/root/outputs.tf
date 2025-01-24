@@ -5,6 +5,10 @@ output "self_link" {
   value = module.test.self_link
 }
 
+output "id" {
+  value = module.test.id
+}
+
 output "subnets_by_name_json" {
   value = jsonencode(module.test.subnets_by_name)
 }

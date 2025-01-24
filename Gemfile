@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ruby '3.3.1'
+ruby '3.3.6'
 
 source 'https://rubygems.org/'
 gem 'kitchen-terraform', '~> 7.0.2'

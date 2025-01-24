@@ -9,7 +9,6 @@ terraform {
 }
 
 locals {
-  primary_ipv4_cidrs = cidrsubnets(var.cidrs.primary_ipv4_cidr, [for r in var.regions : var.cidrs.primary_ipv4_subnet_size - tonumber(split("/", var.cidrs.primary_ipv4_cidr)[1])]...)
   subnets = { for i, region in var.regions :
     format("%s-%s", var.name, module.regions.results[region].abbreviation) => {
       region                = region
@@ -39,6 +38,8 @@ resource "google_compute_network" "network" {
   internal_ipv6_range             = var.options.ipv6_ula ? var.cidrs.primary_ipv6_cidr : null
 }
 
+# TODO @memes - update Google provider and remove use of beta API?
+# tflint-ignore: terraform_required_providers
 resource "google_compute_subnetwork" "subnet" {
   provider                   = google-beta
   for_each                   = local.subnets
