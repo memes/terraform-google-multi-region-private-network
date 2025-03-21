@@ -20,6 +20,7 @@ output "subnets_by_name" {
     primary_ipv4_cidr    = v.ip_cidr_range
     primary_ipv6_cidr    = v.ipv6_cidr_range
     secondary_ipv4_cidrs = { for entry in v.secondary_ip_range : entry.range_name => entry.ip_cidr_range }
+    gateway_address      = v.gateway_address
   } }
   description = <<-EOD
   A map of subnet name to region, self_link, and CIDRs.
@@ -35,6 +36,7 @@ output "subnets_by_region" {
     primary_ipv4_cidr    = v.ip_cidr_range
     primary_ipv6_cidr    = v.ipv6_cidr_range
     secondary_ipv4_cidrs = { for entry in v.secondary_ip_range : entry.range_name => entry.ip_cidr_range }
+    gateway_address      = v.gateway_address
   } }
   description = <<-EOD
   A map of subnet region to name, self_link, and CIDRs.
