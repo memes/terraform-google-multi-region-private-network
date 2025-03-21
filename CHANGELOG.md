@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1](https://github.com/memes/terraform-google-multi-region-private-network/compare/v3.1.0...v3.1.1) (2025-03-21)
+
+
+### Bug Fixes
+
+* Include gateway_address in subnet details. ([637571e](https://github.com/memes/terraform-google-multi-region-private-network/commit/637571e3a1dbd9b88ba533f8e0cd3126402a0671))
+* Include gateway_address in subnet details. ([66effc4](https://github.com/memes/terraform-google-multi-region-private-network/commit/66effc48939af0c0db0f57f71427e6ba81b6c352)), closes [#83](https://github.com/memes/terraform-google-multi-region-private-network/issues/83)
+
 ## [3.1.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v3.0.0...v3.1.0) (2025-01-24)
 
 
