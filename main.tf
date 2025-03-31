@@ -58,6 +58,7 @@ resource "google_compute_subnetwork" "subnet" {
     }
   }
 
+  enable_flow_logs = var.flow_logs != null
   dynamic "log_config" {
     for_each = var.flow_logs == null ? {} : { config = var.flow_logs }
     content {
