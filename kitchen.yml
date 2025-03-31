@@ -118,7 +118,7 @@ platforms:
         name: mrpn-ipv6-manual
         regions: '[\"us-west1\",\"us-central1\"]'
         # yamllint disable rule:line-length
-        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=\"fd20:39b:afc4:0:0:0:0:0/48\",secondaries={}}'
+        cidrs: '{primary_ipv4_cidr=\"172.16.0.0/12\",primary_ipv4_subnet_size=16,primary_ipv4_subnet_offset=0,primary_ipv4_subnet_step=1,primary_ipv6_cidr=\"fd20:39b:afc6:0:0:0:0:0/48\",secondaries={}}'
         options: '{mtu=1460,delete_default_routes=false,enable_restricted_apis_access=true,regional_routing_mode=false,ipv6_ula=true}'
         # yamllint enable rule:line-length
   - name: primary_offset_step
