@@ -27,6 +27,7 @@ control 'subnets' do
   cidrs = JSON.parse(input('output_cidrs_json'), { symbolize_names: true })
   secondaries = cidrs[:secondaries] || {}
   options = JSON.parse(input('output_options_json'), { symbolize_names: true })
+  flow_logs = JSON.parse(input('output_flow_logs_json'), { symbolize_names: true })
 
   subnets_by_name.each_value do |v|
     params = v[:self_link].match(SUBNET_MATCHER).named_captures
@@ -40,8 +41,8 @@ control 'subnets' do
       its('ip_cidr_range') { should have_cidr_size(cidrs[:primary_ipv4_subnet_size]) }
       its('purpose') { should cmp 'PRIVATE' }
       its('role') { should be_nil }
-      its('private_ip_google_access') { should cmp(options[:restricted_apis] || options[:private_apis]) }
-      its('log_config.enable') { should cmp options[:flow_logs] }
+      its('private_ip_google_access') { should cmp true }
+      its('log_config.enable') { should cmp !flow_logs.nil? }
       if secondaries.empty?
         its('secondary_ip_ranges') { should be_nil }
       else
@@ -53,7 +54,7 @@ control 'subnets' do
           end
         end
       end
-      if options[:ipv6_ula] && options[:restricted_apis]
+      if options[:ipv6_ula]
         its('private_ipv6_google_access') { should cmp 'ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE' }
       else
         its('private_ipv6_google_access') { should cmp 'DISABLE_GOOGLE_ACCESS' }

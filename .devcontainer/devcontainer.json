@@ -19,7 +19,11 @@
         },
         "ghcr.io/memes/devcontainers-features/tflint:1": {
             "version": "0.55.1"
+        },
+        "ghcr.io/memes/devcontainers-features/hashicorp:1": {
+            "terraform": "1.5.5"
         }
+
     },
     "customizations": {
         "vscode": {

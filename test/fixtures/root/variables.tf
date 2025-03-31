@@ -41,27 +41,50 @@ variable "cidrs" {
 
 variable "options" {
   type = object({
-    mtu                   = number
-    delete_default_routes = bool
-    restricted_apis       = bool
-    routing_mode          = string
-    nat                   = bool
-    nat_tags              = set(string)
-    flow_logs             = bool
-    nat_logs              = bool
-    ipv6_ula              = bool
-    private_apis          = bool
+    mtu                           = number
+    delete_default_routes         = bool
+    enable_restricted_apis_access = bool
+    regional_routing_mode         = bool
+    ipv6_ula                      = bool
   })
+  nullable = false
   default = {
-    mtu                   = 1460
-    delete_default_routes = true
-    restricted_apis       = true
-    routing_mode          = "GLOBAL"
-    nat                   = false
-    nat_tags              = null
-    flow_logs             = false
-    nat_logs              = false
-    ipv6_ula              = false
-    private_apis          = false
+    mtu                           = 1460
+    delete_default_routes         = true
+    enable_restricted_apis_access = true
+    regional_routing_mode         = false
+    ipv6_ula                      = false
   }
+}
+
+variable "flow_logs" {
+  type = object({
+    aggregation_interval = string
+    flow_sampling        = number
+    metadata             = string
+    metadata_fields      = set(string)
+    filter_expr          = string
+  })
+  nullable = true
+  default  = null
+}
+
+variable "nat" {
+  type = object({
+    tags           = set(string)
+    logging_filter = string
+  })
+  nullable = true
+  default  = null
+}
+
+variable "psc" {
+  type = object({
+    address = string
+    service_directory = object({
+      namespace = string
+      region    = string
+    })
+  })
+  default = null
 }

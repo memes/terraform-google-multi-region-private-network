@@ -25,3 +25,15 @@ output "cidrs_json" {
 output "options_json" {
   value = jsonencode(var.options)
 }
+
+output "flow_logs_json" {
+  value = jsonencode(var.flow_logs)
+}
+
+output "nat_json" {
+  value = jsonencode(var.nat)
+}
+
+output "psc_json" {
+  value = jsonencode(var.psc)
+}

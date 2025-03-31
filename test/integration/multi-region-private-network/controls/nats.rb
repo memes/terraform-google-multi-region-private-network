@@ -8,9 +8,10 @@ control 'nats' do
   network = input('output_self_link')
   project = input('input_project_id')
   regions = input('input_regions').gsub(/(?:[\[\]]|\\?")/, '').gsub(', ', ',').split(',')
-  options = JSON.parse(input('output_options_json'), { symbolize_names: true })
+  nat = JSON.parse(input('output_nat_json'), { symbolize_names: true })
 
-  router_count = options[:nat] ? regions.length : 0
+  router_count = nat.nil? ? 0 : regions.length
+  logging_enabled = !(nat.nil? || nat[:logging_filter].nil? || nat[:logging_filter].empty?)
   regions.each_with_index do |region, _index|
     describe region do
       expected_count, msg = if router_count.zero?
@@ -23,7 +24,7 @@ control 'nats' do
         expect(routers.count).to cmp expected_count
         nats = google_compute_router_nats(project:, region:, router: routers.names.first)
         expect(nats.count).to cmp expected_count
-        expect(nats.log_configs.first.enable).to eq options[:nat_logs] if nats.count.positive?
+        expect(nats.log_configs.first.enable).to eq logging_enabled if nats.count.positive?
       end
     end
   end
