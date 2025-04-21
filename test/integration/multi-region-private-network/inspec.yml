@@ -41,3 +41,12 @@ inputs:
   - name: input_regions
     type: string
     required: true
+  - name: output_flow_logs_json
+    type: string
+    required: true
+  - name: output_nat_json
+    type: string
+    required: true
+  - name: output_psc_json
+    type: string
+    required: true

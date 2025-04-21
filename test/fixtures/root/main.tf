@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.2"
+  required_version = ">= 1.5"
 }
 
 module "test" {
@@ -10,4 +10,7 @@ module "test" {
   regions     = var.regions
   cidrs       = var.cidrs
   options     = var.options
+  flow_logs   = var.flow_logs
+  nat         = var.nat
+  psc         = var.psc
 }

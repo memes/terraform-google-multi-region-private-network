@@ -57,7 +57,7 @@ egress traffic, and IPv6 ULA addressing enabled.
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
@@ -84,7 +84,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
@@ -121,7 +121,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -138,8 +138,8 @@ module "vpc" {
                 ipv4_subnet_step   = 1
             }
             services = {
-                ipv4_cidr        = "10.100.0.0/16"
-                ipv4_subnet_size = 24
+                ipv4_cidr          = "10.100.0.0/16"
+                ipv4_subnet_size   = 24
                 ipv4_subnet_offset = 0
                 ipv4_subnet_step   = 1
             }
@@ -170,20 +170,12 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
-    options    = {
-        mtu                   = 1460
-        delete_default_routes = false
-        restricted_apis       = true
-        private_apis          = false
-        routing_mode          = "GLOBAL"
-        nat                   = true
-        nat_tags              = null
-        flow_logs             = null
-        nat_logs              = null
-        ipv6_ula              = false
+    nat = {
+        tags           = ["allow-nat"]
+        logging_filter = null
     }
 }
 ```
@@ -210,20 +202,15 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
-        mtu                   = 1460
-        delete_default_routes = true
-        restricted_apis       = true
-        private_apis          = false
-        routing_mode          = "GLOBAL"
-        nat                   = true
-        nat_tags              = null
-        flow_logs             = null
-        nat_logs              = null
-        ipv6_ula              = true
+        mtu                           = 1460
+        delete_default_routes         = true
+        enable_restricted_apis_access = true
+        regional_routing_mode         = false
+        ipv6_ula                      = true
     }
 }
 ```
@@ -240,7 +227,6 @@ module "vpc" {
 |VPC routing mode|&check;|GLOBAL|
 |Default internet route|&check;|Deleted; VPC will not route to internet|
 |Restricted API route|&check;|A route for restricted Google API endpoints is added|
-        restricted_apis       = true
 |MTU|&check;|1460|
 |Cloud NAT||Not enabled|
 |*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
@@ -250,7 +236,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -259,19 +245,14 @@ module "vpc" {
         primary_ipv4_subnet_offset = 0
         primary_ipv4_subnet_step   = 1
         primary_ipv6_cidr          = "fd20:0:0309:0:0:0:0:0/48"
-        secondaries = {}
+        secondaries                = {}
     }
     options    = {
-        mtu                   = 1460
-        delete_default_routes = true
-        restricted_apis       = true
-        private_apis          = false
-        routing_mode          = "GLOBAL"
-        nat                   = true
-        nat_tags              = null
-        flow_logs             = null
-        nat_logs              = null
-        ipv6_ula              = true
+        mtu                           = 1460
+        delete_default_routes         = true
+        enable_restricted_apis_access = true
+        regional_routing_mode         = false
+        ipv6_ula                      = true
     }
 }
 ```
@@ -298,7 +279,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -307,24 +288,19 @@ module "vpc" {
         primary_ipv4_subnet_offset = 0
         primary_ipv4_subnet_step   = 1
         primary_ipv6_cidr          = null
-        secondaries = {}
+        secondaries                = {}
     }
-    options    = {
-        mtu                   = 1460
-        delete_default_routes = true
-        restricted_apis       = false
-        private_apis          = true
-        routing_mode          = "GLOBAL"
-        nat                   = false
-        nat_tags              = null
-        flow_logs             = null
-        nat_logs              = null
-        ipv6_ula              = false
+    options = {
+        mtu                           = 1460
+        delete_default_routes         = true
+        enable_restricted_apis_access = false
+        regional_routing_mode         = false
+        ipv6_ula                      = false
     }
 }
 ```
 
-### East-west dual region with Private and Restricted Google APIs access
+### East-west dual region with Restricted Google APIs access via PSC
 
 <!-- markdownlint-disable MD033 MD034-->
 |Item|Enabled/managed by module|Description|
@@ -339,6 +315,7 @@ module "vpc" {
 |Private API route|&check;|A route for private Google API endpoints is added|
 |MTU|&check;|1460|
 |Cloud NAT||Not enabled|
+|PSC||`10.10.10.10`
 |*Restricted and Private Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
@@ -346,28 +323,12 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "3.0.0"
+    version    = "4.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
-    cidrs      = {
-        primary_ipv4_cidr          = "172.16.0.0/12"
-        primary_ipv4_subnet_size   = 24
-        primary_ipv4_subnet_offset = 0
-        primary_ipv4_subnet_step   = 1
-        primary_ipv6_cidr          = null
-        secondaries = {}
-    }
-    options    = {
-        mtu                   = 1460
-        delete_default_routes = true
-        restricted_apis       = false
-        private_apis          = true
-        routing_mode          = "GLOBAL"
-        nat                   = false
-        nat_tags              = null
-        flow_logs             = null
-        nat_logs              = null
-        ipv6_ula              = false
+    psc        = {
+        address           = "10.10.10.10"
+        service_directory = null
     }
 }
 ```
@@ -378,8 +339,8 @@ module "vpc" {
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | >= 4.42 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
+| <a name="requirement_google"></a> [google](#requirement\_google) | >= 6.25 |
 
 ## Modules
 
@@ -391,13 +352,14 @@ module "vpc" {
 
 | Name | Type |
 |------|------|
-| [google-beta_google_compute_subnetwork.subnet](https://registry.terraform.io/providers/hashicorp/google-beta/latest/docs/resources/google_compute_subnetwork) | resource |
+| [google_compute_global_address.psc](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_global_address) | resource |
+| [google_compute_global_forwarding_rule.psc](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_global_forwarding_rule) | resource |
 | [google_compute_network.network](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_network) | resource |
-| [google_compute_route.private_apis](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
-| [google_compute_route.restricted_apis](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
+| [google_compute_route.apis](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
 | [google_compute_route.tagged_nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_route) | resource |
 | [google_compute_router.nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router) | resource |
 | [google_compute_router_nat.nat](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_nat) | resource |
+| [google_compute_subnetwork.subnet](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_subnetwork) | resource |
 
 ## Inputs
 
@@ -407,8 +369,11 @@ module "vpc" {
 | <a name="input_regions"></a> [regions](#input\_regions) | The list of Compute Engine regions in which to create the VPC subnetworks. | `list(string)` | n/a | yes |
 | <a name="input_cidrs"></a> [cidrs](#input\_cidrs) | Sets the primary IPv4 CIDR and regional subnet size to use with the network,<br/>an optional IPv6 ULA CIDR to use with the network, and any optional secondary<br/>IPv4 CIDRs and sizes. | <pre>object({<br/>    primary_ipv4_cidr          = string<br/>    primary_ipv4_subnet_size   = number<br/>    primary_ipv4_subnet_offset = number<br/>    primary_ipv4_subnet_step   = number<br/>    primary_ipv6_cidr          = string<br/>    secondaries = map(object({<br/>      ipv4_cidr          = string<br/>      ipv4_subnet_size   = number<br/>      ipv4_subnet_offset = number<br/>      ipv4_subnet_step   = number<br/>    }))<br/>  })</pre> | <pre>{<br/>  "primary_ipv4_cidr": "172.16.0.0/12",<br/>  "primary_ipv4_subnet_offset": 0,<br/>  "primary_ipv4_subnet_size": 24,<br/>  "primary_ipv4_subnet_step": 1,<br/>  "primary_ipv6_cidr": null,<br/>  "secondaries": {}<br/>}</pre> | no |
 | <a name="input_description"></a> [description](#input\_description) | A descriptive value to apply to the VPC network. Default value is 'custom vpc'. | `string` | `"custom vpc"` | no |
+| <a name="input_flow_logs"></a> [flow\_logs](#input\_flow\_logs) | If not null, enable flow log collection in Cloud Logging using the provided parameters. If null (default), flow log<br/>collection will be disabled. | <pre>object({<br/>    aggregation_interval = string<br/>    flow_sampling        = number<br/>    metadata             = string<br/>    metadata_fields      = set(string)<br/>    filter_expr          = string<br/>  })</pre> | `null` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name to use when naming resources managed by this module. Must be RFC1035<br/>compliant and between 1 and 55 characters in length, inclusive. | `string` | `"restricted"` | no |
-| <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. | <pre>object({<br/>    mtu                   = number<br/>    delete_default_routes = bool<br/>    restricted_apis       = bool<br/>    routing_mode          = string<br/>    nat                   = bool<br/>    nat_tags              = set(string)<br/>    flow_logs             = bool<br/>    nat_logs              = bool<br/>    ipv6_ula              = bool<br/>    private_apis          = bool<br/>  })</pre> | <pre>{<br/>  "delete_default_routes": true,<br/>  "flow_logs": false,<br/>  "ipv6_ula": false,<br/>  "mtu": 1460,<br/>  "nat": false,<br/>  "nat_logs": false,<br/>  "nat_tags": null,<br/>  "private_apis": false,<br/>  "restricted_apis": true,<br/>  "routing_mode": "GLOBAL"<br/>}</pre> | no |
+| <a name="input_nat"></a> [nat](#input\_nat) | If not null, Cloud NAT instances and supporting Cloud Routers will be added to each subnet along with supporting<br/>routes with tags, if applicable. Log collection is controlled by the presence of a non empty logging\_filter field. | <pre>object({<br/>    tags           = set(string)<br/>    logging_filter = string<br/>  })</pre> | `null` | no |
+| <a name="input_options"></a> [options](#input\_options) | The set of options to use when creating the VPC network. The default value will create a VPC network with MTU of 1460,<br/>GLOBAL routing mode, and IPv6 ULA disabled. Default routes (0.0.0.0/0, ::0) to the default gateway are deleted; routes<br/>will be added to support Restricted (default) or Private Google APIs access unless PSC for Google APIs is enabled<br/>through the `psc` variable. | <pre>object({<br/>    mtu                           = number<br/>    delete_default_routes         = bool<br/>    enable_restricted_apis_access = bool<br/>    regional_routing_mode         = bool<br/>    ipv6_ula                      = bool<br/>  })</pre> | <pre>{<br/>  "delete_default_routes": true,<br/>  "enable_restricted_apis_access": true,<br/>  "ipv6_ula": false,<br/>  "mtu": 1460,<br/>  "regional_routing_mode": false<br/>}</pre> | no |
+| <a name="input_psc"></a> [psc](#input\_psc) | If set, create a Private Service Connect for Google APIs resource to provide Private or Restricted Google APIs access<br/>via a PSC in the VPC. If a valid service\_directory field is present automatic DNS registration via Service Directory<br/>will be activated. The value of `options.enable_restricted_apis_access` determines if the PSC will be to Restricted<br/>(default) or Private Google APIs bundle. | <pre>object({<br/>    address = string<br/>    service_directory = object({<br/>      namespace = string<br/>      region    = string<br/>    })<br/>  })</pre> | `null` | no |
 
 ## Outputs
 

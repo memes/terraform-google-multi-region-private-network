@@ -20,7 +20,7 @@ control 'networks' do
     its('description') { should cmp description }
     its('subnetworks.length') { should cmp expected_number_subnets }
     its('auto_create_subnetworks') { should cmp false }
-    its('routing_config.routing_mode') { should cmp options[:routing_mode] }
+    its('routing_config.routing_mode') { should cmp options[:regional_routing_mode] ? 'REGIONAL' : 'GLOBAL' }
     its('peerings') { should be_nil }
     its('mtu') { should cmp options[:mtu] }
   end

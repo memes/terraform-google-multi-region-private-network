@@ -2,6 +2,9 @@
 
 require 'json'
 
+RESTRICTED_APIS_CIDR = '199.36.153.4/30'
+PRIVATE_APIS_CIDR = '199.36.153.8/30'
+
 control 'default-vpc-route' do
   title 'Ensure default VPC route matches expectations'
   impact 1.0
@@ -23,10 +26,15 @@ control 'restricted-api-route' do
   options = JSON.parse(input('output_options_json'), { symbolize_names: true })
   project = input('input_project_id')
   name = input('input_name')
+  psc = JSON.parse(input('output_psc_json', value: '{}'), { symbolize_names: true })
 
   default_gateway = "https://www.googleapis.com/compute/v1/projects/#{project}/global/gateways/default-internet-gateway"
-  expected_restricted_apis_count = options[:restricted_apis] ? 1 : 0
-  describe google_compute_routes(project:).where(network:, dest_range: '199.36.153.4/30',
+  expected_restricted_apis_count = if psc.nil? || psc.fetch(:address).nil? || psc.fetch(:address).empty?
+                                     options[:enable_restricted_apis_access] ? 1 : 0
+                                   else
+                                     0
+                                   end
+  describe google_compute_routes(project:).where(network:, dest_range: RESTRICTED_APIS_CIDR,
                                                  name: "#{name}-restricted-apis") do
     its('count') { should eq expected_restricted_apis_count }
     unless expected_restricted_apis_count.zero?
@@ -44,10 +52,15 @@ control 'private-api-route' do
   options = JSON.parse(input('output_options_json'), { symbolize_names: true })
   project = input('input_project_id')
   name = input('input_name')
+  psc = JSON.parse(input('output_psc_json', value: '{}'), { symbolize_names: true })
 
   default_gateway = "https://www.googleapis.com/compute/v1/projects/#{project}/global/gateways/default-internet-gateway"
-  expected_restricted_apis_count = options[:private_apis] ? 1 : 0
-  describe google_compute_routes(project:).where(network:, dest_range: '199.36.153.8/30',
+  expected_restricted_apis_count = if psc.nil? || psc.fetch(:address).nil? || psc.fetch(:address).empty?
+                                     options[:enable_restricted_apis_access] ? 0 : 1
+                                   else
+                                     0
+                                   end
+  describe google_compute_routes(project:).where(network:, dest_range: PRIVATE_APIS_CIDR,
                                                  name: "#{name}-private-apis") do
     its('count') { should eq expected_restricted_apis_count }
     unless expected_restricted_apis_count.zero?
@@ -62,13 +75,13 @@ control 'tagged-nat-route' do
   title 'Ensure tagged route to NAT matches expectations'
   impact 1.0
   network = input('output_self_link')
-  options = JSON.parse(input('output_options_json'), { symbolize_names: true })
+  nat = JSON.parse(input('output_nat_json'), { symbolize_names: true })
   project = input('input_project_id')
   name = input('input_name')
-  tags = options[:nat_tags]
+  tags = nat.nil? ? nil : nat[:tags]
 
   default_gateway = "https://www.googleapis.com/compute/v1/projects/#{project}/global/gateways/default-internet-gateway"
-  expected_tagged_nat_count = options[:nat] && tags.count.positive? ? 1 : 0
+  expected_tagged_nat_count = nat.nil? || tags.nil? || tags.count.zero? ? 0 : 1
   describe google_compute_routes(project:).where(network:, dest_range: '0.0.0.0/0', name: "#{name}-tagged-nat") do
     its('count') { should eq expected_tagged_nat_count }
     unless expected_tagged_nat_count.zero?
