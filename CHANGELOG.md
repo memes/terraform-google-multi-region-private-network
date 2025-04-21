@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v3.1.1...v4.0.0) (2025-04-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* NAT and flow_logs settings have been transferred from options variable to their own variables to support future expansion. Also, the minimal versions of Terraform/Tofu and Google provider have changed to 1.5+ and 6.25+, respectively.
+
+### Features
+
+* Add support for PSC creation in network ([626f302](https://github.com/memes/terraform-google-multi-region-private-network/commit/626f302b23b90d5f8eae0648b16df03db8e58003))
+
 ## [3.1.1](https://github.com/memes/terraform-google-multi-region-private-network/compare/v3.1.0...v3.1.1) (2025-03-21)
 
 
