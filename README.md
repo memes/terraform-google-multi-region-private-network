@@ -57,7 +57,7 @@ egress traffic, and IPv6 ULA addressing enabled.
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
@@ -84,7 +84,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
@@ -121,7 +121,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -170,7 +170,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     nat = {
@@ -202,7 +202,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
@@ -236,7 +236,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -279,7 +279,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -323,7 +323,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.0"
+    version    = "4.0.1"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     psc        = {
@@ -340,7 +340,7 @@ module "vpc" {
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | >= 6.25 |
+| <a name="requirement_google"></a> [google](#requirement\_google) | >= 6.25, <7 |
 
 ## Modules
 
