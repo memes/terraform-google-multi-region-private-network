@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.1](https://github.com/memes/terraform-google-multi-region-private-network/compare/v4.0.0...v4.0.1) (2025-09-03)
+
+
+### Bug Fixes
+
+* Restrict Google provider to &lt;7 ([1f61704](https://github.com/memes/terraform-google-multi-region-private-network/commit/1f617046c0fc046d20db5bfabdbf2cf7c4a977b6))
+* Restrict Google provider to &lt;7 ([c1f0abf](https://github.com/memes/terraform-google-multi-region-private-network/commit/c1f0abf334c3dac810268bfd19f6871cce4219ba))
+
 ## [4.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v3.1.1...v4.0.0) (2025-04-21)
 
 
