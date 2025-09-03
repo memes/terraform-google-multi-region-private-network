@@ -1,6 +1,7 @@
 # spell-checker: disable
 # yamllint disable rule:line-length
 ---
+version: "1.0"
 fileignoreconfig:
 - filename: .github/workflows/release.yml
   checksum: a975e764f9205155fb006fef6de943574e3d61a314f9215599590a0242ad2efc
@@ -12,3 +13,5 @@ fileignoreconfig:
   checksum: bed109aeab33c2301dde5f77169d35577a9df7fcac08cc8e9c315000d501942d
 - filename: main.tf
   checksum: 63b47360421fb552162d0e597f76979da6718d841cab9d6d2b6f78ffa8aca911
+- filename: uv.lock
+  checksum: 77416ccb1c9c1645cb79b7f811fe7cd82b2fad6692b5c32cfefec13122b41912
