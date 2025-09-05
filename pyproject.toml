@@ -5,14 +5,16 @@ description = "Test harness for Terraform/Tofu module"
 readme = "README.md"
 requires-python = ">=3.12"
 # spell-checker: disable
-dependencies = []
+dependencies = [
+    "google-cloud-compute>=1.36.0",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+]
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.2.0",
     "pyright[nodejs]>=1.1.404",
-    "pytest>=8.4.1",
-    "pytest-cov>=6.2.1",
     "ruff>=0.12.11",
 ]
 

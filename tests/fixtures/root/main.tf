@@ -1,5 +1,20 @@
+# This fixture is a thin wrapper around the root module; same input variables and defaults, same outputs.
+
 terraform {
   required_version = ">= 1.5"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 6.25, <7"
+    }
+  }
+}
+
+provider "google" {
+  default_labels = merge({
+    "test_source"  = "memes_terraform_google_multi_region_private_network"
+    "test_fixture" = "root"
+  }, var.default_labels)
 }
 
 module "test" {
