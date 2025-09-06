@@ -1,9 +1,25 @@
+#
+# Fixture specific variables
+#
+variable "default_labels" {
+  type        = map(string)
+  default     = {}
+  description = <<-EOD
+  An optional map of labels to apply to resources that accept them. Added as defaults in the Google provider
+  configuration.
+  EOD
+}
+
+#
+# Variables passed directly to root module
+#
 variable "project_id" {
   type = string
 }
 
 variable "name" {
-  type = string
+  type    = string
+  default = "restricted"
 }
 
 variable "description" {

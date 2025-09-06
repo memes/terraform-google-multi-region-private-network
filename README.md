@@ -57,7 +57,7 @@ egress traffic, and IPv6 ULA addressing enabled.
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
@@ -84,7 +84,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
     regions    = ["us-east1", "us-west1"]
@@ -101,7 +101,7 @@ module "vpc" {
 
 ### East-west dual region with secondary ranges for GKE
 
-<!-- markdownlint-disable MD033 MD034-->
+<!-- markdownlint-disable MD013 MD033 MD034-->
 |Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
 |Regions|&check;|`us-east1` and `us-west1`|
@@ -116,12 +116,12 @@ module "vpc" {
 |Cloud NAT||Not enabled|
 |*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
-<!-- markdownlint-enable MD033 MD034-->
+<!-- markdownlint-enable MD013 MD033 MD034-->
 
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -170,7 +170,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     nat = {
@@ -202,7 +202,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     options    = {
@@ -236,7 +236,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -279,7 +279,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     cidrs      = {
@@ -315,7 +315,7 @@ module "vpc" {
 |Private API route|&check;|A route for private Google API endpoints is added|
 |MTU|&check;|1460|
 |Cloud NAT||Not enabled|
-|PSC||`10.10.10.10`
+|PSC||`10.10.10.10`|
 |*Restricted and Private Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
@@ -323,7 +323,7 @@ module "vpc" {
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
-    version    = "4.0.1"
+    version    = "5.0.0"
     project_id = "my-project-id"
     regions    = ["us-east1", "us-west1"]
     psc        = {
@@ -340,7 +340,7 @@ module "vpc" {
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | >= 6.25, <7 |
+| <a name="requirement_google"></a> [google](#requirement\_google) | >= 7.1 |
 
 ## Modules
 

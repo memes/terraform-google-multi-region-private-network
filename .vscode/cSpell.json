@@ -20,8 +20,11 @@
         "mrpn",
         "opencontainers",
         "pastebin",
+        "pytestmark",
         "subnetwork",
         "subnetworks",
+        "tfvar",
+        "tfvars",
         "thumbsup",
         "trimpath",
         "venv",
@@ -33,6 +36,9 @@
         "hte"
     ],
     "ignorePaths": [
-        ".devcontainer/devcontainer.json"
+        ".devcontainer/devcontainer.json",
+        ".gitignore",
+        ".pre-commit-config.yaml",
+        "uv.lock"
     ]
 }
