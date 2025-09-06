@@ -14,6 +14,7 @@ FIXTURE_NAME = "mrpn-ipv6-ula-manual"
 
 # NOTE: GCP ULA allocation in fd20::/20 is first-come, first-served so this value may have been consumed by another user
 # since last test run. Is there a better way to do this other than random values and hope no one else is using it?
+pytestmark = pytest.mark.skip(reason="Manual IPv6 can only succeed if the CIDR is unused anywhere in Google Cloud")
 IPV6_CIDR = ipaddress.IPv6Network("fd20:0acb:ffff:0:0:0:0:0/48")
 
 
