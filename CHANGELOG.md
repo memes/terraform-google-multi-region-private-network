@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v4.0.1...v5.0.0) (2025-09-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* Support Google provider v7
+
+### Features
+
+* Support Google provider v7 ([cf3c72b](https://github.com/memes/terraform-google-multi-region-private-network/commit/cf3c72bb659ba215d649f377a7ccba8877004936))
+
 ## [4.0.1](https://github.com/memes/terraform-google-multi-region-private-network/compare/v4.0.0...v4.0.1) (2025-09-03)
 
 
