@@ -31,8 +31,8 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.ruff.lint.per-file-ignores]
-# Allow assert and don't complain about implicit namespaces for tests.
-"**/tests/**/*" = ["S", "INP"]
+# Allow assert and don't complain about implicit namespaces or too many arguments for tests.
+"**/tests/**/*" = ["S", "INP", "PLR0913"]
 
 [tool.ruff.format]
 quote-style = "double"

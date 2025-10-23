@@ -1,4 +1,4 @@
-"""Test fixture for dual-region deployment with Cloud NAT."""
+"""Test fixture for dual-region deployment with null description."""
 
 import pathlib
 from collections.abc import Generator
@@ -9,7 +9,7 @@ from google.cloud import compute_v1
 
 from .conftest import run_tofu_in_workspace
 
-FIXTURE_NAME = "nat"
+FIXTURE_NAME = "null-desc"
 FIXTURE_LABELS = {
     "fixture": FIXTURE_NAME,
 }
@@ -41,11 +41,11 @@ def output(
         tfvars={
             "project_id": project_id,
             "name": fixture_name,
+            "description": None,
             "regions": [
                 "us-west1",
                 "us-central1",
             ],
-            "nat": {},
             "labels": fixture_labels,
         },
     ) as output:
@@ -110,7 +110,7 @@ def test_network(networks_client: compute_v1.NetworksClient, project_id: str, fi
     )
     assert result
     assert not result.auto_create_subnetworks
-    assert result.description == "custom vpc"
+    assert result.description == ""
     assert not result.enable_ula_internal_ipv6
     assert result.mtu == 1460  # noqa: PLR2004
     assert result.name == fixture_name
@@ -233,14 +233,7 @@ def test_routers_us_west1(routers_client: compute_v1.RoutersClient, project_id: 
             ),
         ),
     )
-    assert len(routers) == 1
-    for router in routers:
-        assert router.name == f"{fixture_name}-us-we1"
-        assert len(router.nats) == 1
-        for nat in router.nats:
-            assert nat.name == f"{fixture_name}-us-we1"
-            assert not nat.log_config.enable
-            assert nat.log_config.filter == "ALL"
+    assert len(routers) == 0
 
 
 def test_routers_us_central1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
@@ -254,14 +247,7 @@ def test_routers_us_central1(routers_client: compute_v1.RoutersClient, project_i
             ),
         ),
     )
-    assert len(routers) == 1
-    for router in routers:
-        assert router.name == f"{fixture_name}-us-ce1"
-        assert len(router.nats) == 1
-        for nat in router.nats:
-            assert nat.name == f"{fixture_name}-us-ce1"
-            assert not nat.log_config.enable
-            assert nat.log_config.filter == "ALL"
+    assert len(routers) == 0
 
 
 def test_psc(

@@ -13,6 +13,23 @@ import pytest
 from google import auth
 from google.cloud import compute_v1
 
+DEFAULT_PREFIX = "mrpn"
+
+
+@pytest.fixture(scope="session")
+def prefix() -> str:
+    """Return the prefix to use for test resources.
+
+    Preference will be given to the environment variable TEST_PREFIX with default value of 'mrpn'.
+    """
+    prefix = os.getenv("TEST_PREFIX", DEFAULT_PREFIX)
+    if prefix:
+        prefix = prefix.strip()
+    if not prefix:
+        prefix = DEFAULT_PREFIX
+    assert prefix
+    return prefix
+
 
 @pytest.fixture(scope="session")
 def project_id() -> str:
@@ -102,7 +119,7 @@ def run_tofu_in_workspace(
     workspace: str | None,
     tfvars: dict[str, Any] | None,
 ) -> Generator[dict[str, Any], None, None]:
-    """Execute tofu init/apply/destroy lifecycle for a fixture in an optional workspace, yielding the output post-apply.
+    """Execute tofu fixture lifecycle in an optional workspace, yielding the output post-apply.
 
     NOTE: Resources will not be destroyed if the test case raises an error.
     """
@@ -128,6 +145,7 @@ def run_tofu_in_workspace(
             f"-chdir={fixture!s}",
             "init",
             "-no-color",
+            "-input=false",
         ],
         check=True,
         capture_output=True,
@@ -138,17 +156,57 @@ def run_tofu_in_workspace(
         suffix=".json",
         encoding="utf-8",
         delete_on_close=False,
-        delete=True,
+        delete=False,
     ) as tfvar_file:
         json.dump(tfvars, tfvar_file, ensure_ascii=False, indent=2)
         tfvar_file.close()
+        # Execute plan then apply with a common plan file.
+        with tempfile.NamedTemporaryFile(
+            mode="w+b",
+            prefix="tf",
+            suffix=".plan",
+            delete_on_close=False,
+            delete=True,
+        ) as plan_file:
+            plan_file.close()
+            subprocess.run(
+                [
+                    tf_command,
+                    f"-chdir={fixture!s}",
+                    "plan",
+                    "-no-color",
+                    "-input=false",
+                    f"-var-file={tfvar_file.name}",
+                    f"-out={plan_file.name}",
+                ],
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(
+                [
+                    tf_command,
+                    f"-chdir={fixture!s}",
+                    "apply",
+                    "-no-color",
+                    "-input=false",
+                    "-auto-approve",
+                    plan_file.name,
+                ],
+                check=True,
+                capture_output=True,
+            )
+
+        # Run plan again with -detailed-exitcode flag, which will only return an exit code of 0 if there are no further
+        # changes. This is to find subtle issues in the Terraform declaration which inadvertently triggers unexpected
+        # resource updates or recreations.
         subprocess.run(
             [
                 tf_command,
                 f"-chdir={fixture!s}",
-                "apply",
+                "plan",
                 "-no-color",
-                "-auto-approve",
+                "-input=false",
+                "-detailed-exitcode",
                 f"-var-file={tfvar_file.name}",
             ],
             check=True,
@@ -174,6 +232,7 @@ def run_tofu_in_workspace(
                         f"-chdir={fixture!s}",
                         "destroy",
                         "-no-color",
+                        "-input=false",
                         "-auto-approve",
                         f"-var-file={tfvar_file.name}",
                     ],

@@ -1,69 +1,70 @@
-#
-# Fixture specific variables
-#
-variable "default_labels" {
-  type        = map(string)
-  default     = {}
-  description = <<-EOD
-  An optional map of labels to apply to resources that accept them. Added as defaults in the Google provider
-  configuration.
-  EOD
-}
-
-#
-# Variables passed directly to root module
-#
 variable "project_id" {
-  type = string
+  type     = string
+  nullable = false
 }
 
 variable "name" {
-  type    = string
-  default = "restricted"
+  type     = string
+  nullable = false
+  default  = "restricted"
 }
 
 variable "description" {
-  type    = string
-  default = "custom vpc"
+  type     = string
+  nullable = true
+  default  = "custom vpc"
+}
+
+variable "labels" {
+  type     = map(string)
+  nullable = true
+  default  = {}
 }
 
 variable "regions" {
-  type = list(string)
+  type     = list(string)
+  nullable = false
 }
 
 variable "cidrs" {
   type = object({
-    primary_ipv4_cidr          = string
-    primary_ipv4_subnet_size   = number
-    primary_ipv4_subnet_offset = number
-    primary_ipv4_subnet_step   = number
-    primary_ipv6_cidr          = string
-    secondaries = map(object({
+    primary_ipv4_cidr          = optional(string, "172.16.0.0/12")
+    primary_ipv4_subnet_size   = optional(number, 24)
+    primary_ipv4_subnet_offset = optional(number, 0)
+    primary_ipv4_subnet_step   = optional(number, 1)
+    primary_ipv6_cidr          = optional(string, null)
+    secondaries = optional(map(object({
       ipv4_cidr          = string
-      ipv4_subnet_size   = number
-      ipv4_subnet_offset = number
-      ipv4_subnet_step   = number
-    }))
+      ipv4_subnet_size   = optional(number, 24)
+      ipv4_subnet_offset = optional(number, 0)
+      ipv4_subnet_step   = optional(number, 1)
+    })), null)
   })
+  nullable = true
   default = {
     primary_ipv4_cidr          = "172.16.0.0/12"
     primary_ipv4_subnet_size   = 24
     primary_ipv4_subnet_offset = 0
     primary_ipv4_subnet_step   = 1
     primary_ipv6_cidr          = null
-    secondaries                = {}
+    secondaries                = null
   }
+  description = <<-EOD
+  Sets the primary IPv4 CIDR and regional subnet size to use with the network,
+  an optional IPv6 ULA CIDR to use with the network, and any optional secondary
+  IPv4 CIDRs and sizes.
+  EOD
 }
 
 variable "options" {
   type = object({
-    mtu                           = number
-    delete_default_routes         = bool
-    enable_restricted_apis_access = bool
-    regional_routing_mode         = bool
-    ipv6_ula                      = bool
+    mtu                           = optional(number, 1460)
+    delete_default_routes         = optional(bool, true)
+    enable_restricted_apis_access = optional(bool, true)
+    regional_routing_mode         = optional(bool, false)
+    ipv6_ula                      = optional(bool, false)
   })
-  nullable = false
+  nullable = true
   default = {
     mtu                           = 1460
     delete_default_routes         = true
@@ -75,11 +76,11 @@ variable "options" {
 
 variable "flow_logs" {
   type = object({
-    aggregation_interval = string
-    flow_sampling        = number
-    metadata             = string
-    metadata_fields      = set(string)
-    filter_expr          = string
+    aggregation_interval = optional(string, "INTERVAL_5_SEC")
+    flow_sampling        = optional(number, 0.5)
+    metadata             = optional(string, "INCLUDE_ALL_METADATA")
+    metadata_fields      = optional(set(string), [])
+    filter_expr          = optional(string, "true")
   })
   nullable = true
   default  = null
@@ -87,8 +88,8 @@ variable "flow_logs" {
 
 variable "nat" {
   type = object({
-    tags           = set(string)
-    logging_filter = string
+    tags           = optional(set(string), [])
+    logging_filter = optional(string, null)
   })
   nullable = true
   default  = null
@@ -97,10 +98,11 @@ variable "nat" {
 variable "psc" {
   type = object({
     address = string
-    service_directory = object({
+    service_directory = optional(object({
       namespace = string
       region    = string
-    })
+    }), null)
   })
-  default = null
+  nullable = true
+  default  = null
 }

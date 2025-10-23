@@ -10,13 +10,6 @@ terraform {
   }
 }
 
-provider "google" {
-  default_labels = merge({
-    "test_source"  = "memes_terraform_google_multi_region_private_network"
-    "test_fixture" = "root"
-  }, var.default_labels)
-}
-
 module "test" {
   source      = "./../../../"
   project_id  = var.project_id
@@ -28,4 +21,5 @@ module "test" {
   flow_logs   = var.flow_logs
   nat         = var.nat
   psc         = var.psc
+  labels      = var.labels
 }
