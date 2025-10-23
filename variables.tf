@@ -1,5 +1,6 @@
 variable "project_id" {
-  type = string
+  type     = string
+  nullable = false
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$", var.project_id))
     error_message = "The project_id variable must must be 6 to 30 lowercase letters, digits, or hyphens; it must start with a letter and cannot end with a hyphen."
@@ -10,7 +11,8 @@ variable "project_id" {
 }
 
 variable "name" {
-  type = string
+  type     = string
+  nullable = false
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{0,54}$", var.name))
     error_message = "The name variable must be RFC1035 compliant and between 1 and 55 characters in length."
@@ -24,16 +26,34 @@ variable "name" {
 
 variable "description" {
   type        = string
+  nullable    = true
   default     = "custom vpc"
   description = <<-EOD
   A descriptive value to apply to the VPC network. Default value is 'custom vpc'.
   EOD
 }
 
-variable "regions" {
-  type = list(string)
+variable "labels" {
+  type     = map(string)
+  nullable = true
   validation {
-    condition     = var.regions == null ? false : alltrue([for region in var.regions : can(regex("^[a-z]{2,}-[a-z]{2,}[0-9]$", region))])
+    # GCP resource labels must be lowercase alphanumeric, underscore or hyphen,
+    # and the key must be <= 63 characters in length
+    condition     = var.labels == null ? true : alltrue([for k, v in var.labels : can(regex("^[a-z][a-z0-9_-]{0,62}$", k)) && can(regex("^[a-z0-9_-]{0,63}$", v))])
+    error_message = "Each label key:value pair must match expectations."
+  }
+  default     = {}
+  description = <<-EOD
+  An optional map of key:value labels to apply to the resources. Default value
+  is an empty map.
+  EOD
+}
+
+variable "regions" {
+  type     = list(string)
+  nullable = false
+  validation {
+    condition     = alltrue([for region in var.regions : can(regex("^[a-z]{2,}-[a-z]{2,}[0-9]$", region))])
     error_message = "There must be at least one entry, and it must be a valid Google Cloud region name."
   }
   description = <<-EOD
@@ -43,26 +63,26 @@ variable "regions" {
 
 variable "cidrs" {
   type = object({
-    primary_ipv4_cidr          = string
-    primary_ipv4_subnet_size   = number
-    primary_ipv4_subnet_offset = number
-    primary_ipv4_subnet_step   = number
-    primary_ipv6_cidr          = string
-    secondaries = map(object({
+    primary_ipv4_cidr          = optional(string, "172.16.0.0/12")
+    primary_ipv4_subnet_size   = optional(number, 24)
+    primary_ipv4_subnet_offset = optional(number, 0)
+    primary_ipv4_subnet_step   = optional(number, 1)
+    primary_ipv6_cidr          = optional(string, null)
+    secondaries = optional(map(object({
       ipv4_cidr          = string
-      ipv4_subnet_size   = number
-      ipv4_subnet_offset = number
-      ipv4_subnet_step   = number
-    }))
+      ipv4_subnet_size   = optional(number, 24)
+      ipv4_subnet_offset = optional(number, 0)
+      ipv4_subnet_step   = optional(number, 1)
+    })), null)
   })
-  nullable = false
+  nullable = true
   default = {
     primary_ipv4_cidr          = "172.16.0.0/12"
     primary_ipv4_subnet_size   = 24
     primary_ipv4_subnet_offset = 0
     primary_ipv4_subnet_step   = 1
     primary_ipv6_cidr          = null
-    secondaries                = {}
+    secondaries                = null
   }
   description = <<-EOD
   Sets the primary IPv4 CIDR and regional subnet size to use with the network,
@@ -73,15 +93,15 @@ variable "cidrs" {
 
 variable "options" {
   type = object({
-    mtu                           = number
-    delete_default_routes         = bool
-    enable_restricted_apis_access = bool
-    regional_routing_mode         = bool
-    ipv6_ula                      = bool
+    mtu                           = optional(number, 1460)
+    delete_default_routes         = optional(bool, true)
+    enable_restricted_apis_access = optional(bool, true)
+    regional_routing_mode         = optional(bool, false)
+    ipv6_ula                      = optional(bool, false)
   })
-  nullable = false
+  nullable = true
   validation {
-    condition     = floor(var.options.mtu) == var.options.mtu && var.options.mtu >= 1300 && var.options.mtu <= 8896
+    condition     = var.options == null ? true : floor(var.options.mtu) == var.options.mtu && var.options.mtu >= 1300 && var.options.mtu <= 8896
     error_message = "Options do not pass validation; MTU must be an integer between 1300 and 8896 inclusive, routing_mode must be one of 'GLOBAL' or 'REGIONAL' and any nat_tag entry has to be RFC1035 compliant."
   }
   default = {
@@ -101,11 +121,11 @@ variable "options" {
 
 variable "flow_logs" {
   type = object({
-    aggregation_interval = string
-    flow_sampling        = number
-    metadata             = string
-    metadata_fields      = set(string)
-    filter_expr          = string
+    aggregation_interval = optional(string, "INTERVAL_5_SEC")
+    flow_sampling        = optional(number, 0.5)
+    metadata             = optional(string, "INCLUDE_ALL_METADATA")
+    metadata_fields      = optional(set(string), [])
+    filter_expr          = optional(string, "true")
   })
   nullable = true
   validation {
@@ -121,12 +141,12 @@ variable "flow_logs" {
 
 variable "nat" {
   type = object({
-    tags           = set(string)
-    logging_filter = string
+    tags           = optional(set(string), [])
+    logging_filter = optional(string, null)
   })
   nullable = true
   validation {
-    condition     = var.nat == null ? true : alltrue([for tag in(var.nat.tags == null ? [] : var.nat.tags) : can(regex("^[a-z][a-z0-9-]{0,62}$", tag))]) && contains(["ALL", "ERRORS_ONLY", "TRANSLATIONS_ONLY", "unspecified"], coalesce(try(var.nat.logging_filter, null), "unspecified"))
+    condition     = var.nat == null ? true : alltrue([for tag in(var.nat.tags == null ? [] : var.nat.tags) : can(regex("^[a-z][a-z0-9-]{0,62}$", tag))]) && var.nat.logging_filter == null ? true : contains(["ALL", "ERRORS_ONLY", "TRANSLATIONS_ONLY", "unspecified"], coalesce(try(var.nat.logging_filter, null), "unspecified"))
     error_message = "If nat is not null, every tag entry has to be RFC1035 compliant, and, if not empty, the logging_filter entry must be one of 'ERRORS_ONLY', 'TRANSLATIONS_ONLY', or 'ALL'"
   }
   default     = null
@@ -139,10 +159,10 @@ variable "nat" {
 variable "psc" {
   type = object({
     address = string
-    service_directory = object({
+    service_directory = optional(object({
       namespace = string
       region    = string
-    })
+    }), null)
   })
   nullable = true
   validation {

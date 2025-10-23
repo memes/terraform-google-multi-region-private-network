@@ -9,13 +9,19 @@ terraform {
 }
 
 locals {
+  # Sanitize the primary CIDRs to handle null/optional values and generate the subnet parameters
+  primary_ipv4_cidr          = coalesce(try(var.cidrs.primary_ipv4_cidr, null), "172.16.0.0/12")
+  primary_ipv4_subnet_size   = try(var.cidrs.primary_ipv4_subnet_size, 24)
+  primary_ipv4_subnet_offset = try(var.cidrs.primary_ipv4_subnet_offset, 0)
+  primary_ipv4_subnet_step   = try(var.cidrs.primary_ipv4_subnet_step, 1)
+  secondaries                = try(var.cidrs.secondaries, null) == null ? {} : var.cidrs.secondaries
   subnets = { for i, region in var.regions :
     format("%s-%s", var.name, module.regions.results[region].abbreviation) => {
       region                = region
-      primary_ipv4_cidr     = cidrsubnet(var.cidrs.primary_ipv4_cidr, var.cidrs.primary_ipv4_subnet_size - tonumber(split("/", var.cidrs.primary_ipv4_cidr)[1]), var.cidrs.primary_ipv4_subnet_offset + i * var.cidrs.primary_ipv4_subnet_step)
-      secondary_ipv4_ranges = var.cidrs.secondaries == null ? {} : { for k, v in var.cidrs.secondaries : k => cidrsubnet(v.ipv4_cidr, v.ipv4_subnet_size - tonumber(split("/", v.ipv4_cidr)[1]), v.ipv4_subnet_offset + i * v.ipv4_subnet_step) }
-      stack_type            = var.options.ipv6_ula ? "IPV4_IPV6" : "IPV4_ONLY"
-      ipv6_access_type      = var.options.ipv6_ula ? "INTERNAL" : null
+      primary_ipv4_cidr     = cidrsubnet(local.primary_ipv4_cidr, local.primary_ipv4_subnet_size - tonumber(split("/", local.primary_ipv4_cidr)[1]), local.primary_ipv4_subnet_offset + i * local.primary_ipv4_subnet_step)
+      secondary_ipv4_ranges = { for k, v in local.secondaries : k => cidrsubnet(v.ipv4_cidr, try(v.ipv4_subnet_size, 24) - tonumber(split("/", v.ipv4_cidr)[1]), try(v.ipv4_subnet_offset, 0) + i * try(v.ipv4_subnet_step, 1)) }
+      stack_type            = try(var.options.ipv6_ula, false) ? "IPV4_IPV6" : "IPV4_ONLY"
+      ipv6_access_type      = try(var.options.ipv6_ula, false) ? "INTERNAL" : null
     }
   }
 }
@@ -31,11 +37,11 @@ resource "google_compute_network" "network" {
   name                            = var.name
   description                     = var.description
   auto_create_subnetworks         = false
-  routing_mode                    = var.options.regional_routing_mode ? "REGIONAL" : "GLOBAL"
-  mtu                             = var.options.mtu
-  delete_default_routes_on_create = var.options.delete_default_routes
-  enable_ula_internal_ipv6        = var.options.ipv6_ula
-  internal_ipv6_range             = var.options.ipv6_ula ? var.cidrs.primary_ipv6_cidr : null
+  routing_mode                    = try(var.options.regional_routing_mode, false) ? "REGIONAL" : "GLOBAL"
+  mtu                             = try(var.options.mtu, 1460)
+  delete_default_routes_on_create = try(var.options.delete_default_routes, true)
+  enable_ula_internal_ipv6        = try(var.options.ipv6_ula, false)
+  internal_ipv6_range             = try(var.options.ipv6_ula, false) ? try(var.cidrs.primary_ipv6_cidr, null) : null
 }
 
 resource "google_compute_subnetwork" "subnet" {
@@ -45,7 +51,7 @@ resource "google_compute_subnetwork" "subnet" {
   network                    = google_compute_network.network.id
   ip_cidr_range              = each.value.primary_ipv4_cidr
   private_ip_google_access   = true
-  private_ipv6_google_access = var.options.ipv6_ula ? "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE" : null
+  private_ipv6_google_access = try(var.options.ipv6_ula, false) ? "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE" : null
   region                     = each.value.region
   stack_type                 = each.value.stack_type
   ipv6_access_type           = each.value.ipv6_access_type
@@ -59,19 +65,19 @@ resource "google_compute_subnetwork" "subnet" {
   }
 
   dynamic "log_config" {
-    for_each = var.flow_logs == null ? {} : { config = var.flow_logs }
+    for_each = var.flow_logs == null ? {} : { enable = true }
     content {
-      aggregation_interval = try(log_config.value.aggregation_interval, "INTERVAL_5_SEC")
-      flow_sampling        = try(log_config.value.flow_sampling, 0.5)
-      metadata             = try(log_config.value.metadata, "INCLUDE_ALL_METADATA")
-      metadata_fields      = try(log_config.value.metadata, "") == "CUSTOM_METADATA" ? log_config.value.metadata_fields : null
-      filter_expr          = try(log_config.value.filter_expr, "true")
+      aggregation_interval = coalesce(try(var.flow_logs.aggregation_interval, "INTERVAL_5_SEC"), "INTERVAL_5_SEC")
+      flow_sampling        = try(var.flow_logs.flow_sampling, 0.5)
+      metadata             = coalesce(try(var.flow_logs.metadata, "INCLUDE_ALL_METADATA"), "INCLUDE_ALL_METADATA")
+      metadata_fields      = try(var.flow_logs.metadata, "INCLUDE_ALL_METADATA") == "CUSTOM_METADATA" ? try(var.flow_logs.metadata_fields, []) : []
+      filter_expr          = coalesce(try(var.flow_logs.filter_expr, "true"), "true")
     }
   }
 }
 
 resource "google_compute_route" "apis" {
-  for_each         = var.psc != null ? {} : (var.options.enable_restricted_apis_access ? { restricted = "199.36.153.4/30" } : { private = "199.36.153.8/30" })
+  for_each         = var.psc != null ? {} : (try(var.options.enable_restricted_apis_access, true) ? { restricted = "199.36.153.4/30" } : { private = "199.36.153.8/30" })
   project          = var.project_id
   name             = format("%s-%s-apis", var.name, each.key)
   network          = google_compute_network.network.name
@@ -116,6 +122,7 @@ resource "google_compute_router_nat" "nat" {
     filter = coalesce(try(var.nat.logging_filter, null), "unspecified") != "unspecified" ? var.nat.logging_filter : "ALL"
   }
 }
+
 resource "google_compute_global_address" "psc" {
   for_each     = coalesce(try(var.psc.address, null), "unspecified") == "unspecified" ? {} : { (var.name) = var.psc.address }
   project      = google_compute_network.network.project
@@ -124,6 +131,7 @@ resource "google_compute_global_address" "psc" {
   purpose      = "PRIVATE_SERVICE_CONNECT"
   network      = google_compute_network.network.id
   address      = each.value
+  labels       = var.labels
 }
 
 resource "google_compute_global_forwarding_rule" "psc" {
@@ -134,6 +142,7 @@ resource "google_compute_global_forwarding_rule" "psc" {
   network               = google_compute_network.network.self_link
   ip_address            = each.value.address
   load_balancing_scheme = ""
+  labels                = var.labels
 
   dynamic "service_directory_registrations" {
     for_each = try(length(var.psc.service_directory), 0) > 0 ? { entry = var.psc.service_directory } : {}
