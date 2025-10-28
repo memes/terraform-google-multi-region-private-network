@@ -1,4 +1,4 @@
-"""Test fixture for dual-region deployment with secondary ranges."""
+"""Test fixture for minimal deployment."""
 
 import pathlib
 from collections.abc import Generator
@@ -9,10 +9,7 @@ from google.cloud import compute_v1
 
 from .conftest import run_tofu_in_workspace
 
-FIXTURE_NAME = "secondary"
-FIXTURE_LABELS = {
-    "fixture": FIXTURE_NAME,
-}
+FIXTURE_NAME = "minimal"
 
 
 @pytest.fixture(scope="module")
@@ -22,17 +19,10 @@ def fixture_name(prefix: str) -> str:
 
 
 @pytest.fixture(scope="module")
-def fixture_labels(labels: dict[str, str]) -> dict[str, str] | None:
-    """Return a dict of labels for this test module."""
-    return FIXTURE_LABELS | labels
-
-
-@pytest.fixture(scope="module")
 def output(
     root_fixture_dir: pathlib.Path,
     project_id: str,
     fixture_name: str,
-    fixture_labels: dict[str, str],
 ) -> Generator[dict[str, Any], None, None]:
     """Execute Tofu (or Terraform) with the input vars suitable for this fixture, yielding the module output."""
     with run_tofu_in_workspace(
@@ -43,16 +33,7 @@ def output(
             "name": fixture_name,
             "regions": [
                 "us-west1",
-                "us-east1",
             ],
-            "cidrs": {
-                "secondaries": {
-                    "test": {
-                        "ipv4_cidr": "192.168.0.0/16",
-                    },
-                },
-            },
-            "labels": fixture_labels,
         },
     ) as output:
         yield output
@@ -70,21 +51,8 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.0.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.0.1",
-            },
-            f"{fixture_name}-us-ea1": {
-                "region": "us-east1",
-                "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
-                "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
-                "primary_ipv4_cidr": "172.16.1.0/24",
-                "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.1.0/24",
-                },
-                "gateway_address": "172.16.1.1",
             },
         },
         "subnets_by_region": {
@@ -94,21 +62,8 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.0.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.0.1",
-            },
-            "us-east1": {
-                "name": f"{fixture_name}-us-ea1",
-                "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
-                "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
-                "primary_ipv4_cidr": "172.16.1.0/24",
-                "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.1.0/24",
-                },
-                "gateway_address": "172.16.1.1",
             },
         },
     }
@@ -130,19 +85,12 @@ def test_network(networks_client: compute_v1.NetworksClient, project_id: str, fi
     assert result.name == fixture_name
     assert not result.peerings
     assert result.routing_config.routing_mode == "GLOBAL"
-    assert result.subnetworks
-    for subnetwork in result.subnetworks:
-        assert subnetwork in [
-            f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
-            f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
-        ]
+    assert result.subnetworks == [
+        f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
+    ]
 
 
-def test_subnetwork_us_west1(
-    subnetworks_client: compute_v1.SubnetworksClient,
-    project_id: str,
-    fixture_name: str,
-) -> None:
+def test_subnetwork(subnetworks_client: compute_v1.SubnetworksClient, project_id: str, fixture_name: str) -> None:
     """Verify the subnetwork exists and matches expectations."""
     result = subnetworks_client.get(
         request=compute_v1.GetSubnetworkRequest(
@@ -168,48 +116,7 @@ def test_subnetwork_us_west1(
     assert result.purpose == "PRIVATE"
     assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1"
     assert not result.role
-    assert len(result.secondary_ip_ranges) == 1
-    for secondary in result.secondary_ip_ranges:
-        assert secondary.range_name == "test"
-        assert secondary.ip_cidr_range == "192.168.0.0/24"
-    assert result.stack_type == "IPV4_ONLY"
-    assert not result.state
-
-
-def test_subnetwork_us_east1(
-    subnetworks_client: compute_v1.SubnetworksClient,
-    project_id: str,
-    fixture_name: str,
-) -> None:
-    """Verify the subnetwork exists and matches expectations."""
-    result = subnetworks_client.get(
-        request=compute_v1.GetSubnetworkRequest(
-            subnetwork=f"{fixture_name}-us-ea1",
-            project=project_id,
-            region="us-east1",
-        ),
-    )
-    assert result
-    assert not result.description
-    assert not result.enable_flow_logs
-    assert not result.external_ipv6_prefix
-    assert not result.internal_ipv6_prefix
-    assert result.ip_cidr_range == "172.16.1.0/24"
-    assert not result.ipv6_cidr_range
-    assert not result.log_config.enable
-    assert result.name == f"{fixture_name}-us-ea1"
-    assert (
-        result.network == f"https://www.googleapis.com/compute/v1/projects/{project_id}/global/networks/{fixture_name}"
-    )
-    assert result.private_ip_google_access
-    assert result.private_ipv6_google_access == "DISABLE_GOOGLE_ACCESS"
-    assert result.purpose == "PRIVATE"
-    assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1"
-    assert not result.role
-    assert len(result.secondary_ip_ranges) == 1
-    for secondary in result.secondary_ip_ranges:
-        assert secondary.range_name == "test"
-        assert secondary.ip_cidr_range == "192.168.1.0/24"
+    assert not result.secondary_ip_ranges
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 
@@ -242,27 +149,13 @@ def test_routes(routes_client: compute_v1.RoutesClient, project_id: str, fixture
     assert len(tagged_routes) == 0
 
 
-def test_routers_us_west1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
+def test_routers(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
     """Verify the router and NAT meets requirements."""
     routers = list(
         routers_client.list(
             request=compute_v1.ListRoutersRequest(
                 project=project_id,
                 region="us-west1",
-                filter=f"network eq .*/{fixture_name}$",
-            ),
-        ),
-    )
-    assert len(routers) == 0
-
-
-def test_routers_us_east1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
-    """Verify the router and NAT meets requirements."""
-    routers = list(
-        routers_client.list(
-            request=compute_v1.ListRoutersRequest(
-                project=project_id,
-                region="us-east1",
                 filter=f"network eq .*/{fixture_name}$",
             ),
         ),

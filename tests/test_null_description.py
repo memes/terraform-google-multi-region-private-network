@@ -1,4 +1,4 @@
-"""Test fixture for dual-region deployment with secondary ranges."""
+"""Test fixture for dual-region deployment with null description."""
 
 import pathlib
 from collections.abc import Generator
@@ -9,7 +9,7 @@ from google.cloud import compute_v1
 
 from .conftest import run_tofu_in_workspace
 
-FIXTURE_NAME = "secondary"
+FIXTURE_NAME = "null-desc"
 FIXTURE_LABELS = {
     "fixture": FIXTURE_NAME,
 }
@@ -41,17 +41,11 @@ def output(
         tfvars={
             "project_id": project_id,
             "name": fixture_name,
+            "description": None,
             "regions": [
                 "us-west1",
                 "us-east1",
             ],
-            "cidrs": {
-                "secondaries": {
-                    "test": {
-                        "ipv4_cidr": "192.168.0.0/16",
-                    },
-                },
-            },
             "labels": fixture_labels,
         },
     ) as output:
@@ -70,9 +64,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.0.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.0.1",
             },
             f"{fixture_name}-us-ea1": {
@@ -81,9 +73,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
                 "primary_ipv4_cidr": "172.16.1.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.1.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.1.1",
             },
         },
@@ -94,9 +84,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.0.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.0.1",
             },
             "us-east1": {
@@ -105,9 +93,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
                 "primary_ipv4_cidr": "172.16.1.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.1.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.1.1",
             },
         },
@@ -124,7 +110,7 @@ def test_network(networks_client: compute_v1.NetworksClient, project_id: str, fi
     )
     assert result
     assert not result.auto_create_subnetworks
-    assert result.description == "custom vpc"
+    assert result.description == ""
     assert not result.enable_ula_internal_ipv6
     assert result.mtu == 1460  # noqa: PLR2004
     assert result.name == fixture_name
@@ -168,10 +154,7 @@ def test_subnetwork_us_west1(
     assert result.purpose == "PRIVATE"
     assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1"
     assert not result.role
-    assert len(result.secondary_ip_ranges) == 1
-    for secondary in result.secondary_ip_ranges:
-        assert secondary.range_name == "test"
-        assert secondary.ip_cidr_range == "192.168.0.0/24"
+    assert not result.secondary_ip_ranges
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 
@@ -206,10 +189,7 @@ def test_subnetwork_us_east1(
     assert result.purpose == "PRIVATE"
     assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1"
     assert not result.role
-    assert len(result.secondary_ip_ranges) == 1
-    for secondary in result.secondary_ip_ranges:
-        assert secondary.range_name == "test"
-        assert secondary.ip_cidr_range == "192.168.1.0/24"
+    assert not result.secondary_ip_ranges
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 

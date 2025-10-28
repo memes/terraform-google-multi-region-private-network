@@ -1,6 +1,7 @@
-"""Test fixture for dual-region deployment with secondary ranges."""
+"""Test fixture for dual-region deployment with custom metadata flow logging enabled."""
 
 import pathlib
+from collections import Counter
 from collections.abc import Generator
 from typing import Any
 
@@ -9,10 +10,13 @@ from google.cloud import compute_v1
 
 from .conftest import run_tofu_in_workspace
 
-FIXTURE_NAME = "secondary"
+FIXTURE_NAME = "custom-meta-flow-log"
 FIXTURE_LABELS = {
     "fixture": FIXTURE_NAME,
 }
+FIXTURE_METADATA_FIELDS = [
+    "src_instance",
+]
 
 
 @pytest.fixture(scope="module")
@@ -45,12 +49,9 @@ def output(
                 "us-west1",
                 "us-east1",
             ],
-            "cidrs": {
-                "secondaries": {
-                    "test": {
-                        "ipv4_cidr": "192.168.0.0/16",
-                    },
-                },
+            "flow_logs": {
+                "metadata": "CUSTOM_METADATA",
+                "metadata_fields": FIXTURE_METADATA_FIELDS,
             },
             "labels": fixture_labels,
         },
@@ -70,9 +71,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.0.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.0.1",
             },
             f"{fixture_name}-us-ea1": {
@@ -81,9 +80,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
                 "primary_ipv4_cidr": "172.16.1.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.1.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.1.1",
             },
         },
@@ -94,9 +91,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.0.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.0.1",
             },
             "us-east1": {
@@ -105,9 +100,7 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
                 "primary_ipv4_cidr": "172.16.1.0/24",
                 "primary_ipv6_cidr": "",
-                "secondary_ipv4_cidrs": {
-                    "test": "192.168.1.0/24",
-                },
+                "secondary_ipv4_cidrs": {},
                 "gateway_address": "172.16.1.1",
             },
         },
@@ -153,12 +146,17 @@ def test_subnetwork_us_west1(
     )
     assert result
     assert not result.description
-    assert not result.enable_flow_logs
+    assert result.enable_flow_logs
     assert not result.external_ipv6_prefix
     assert not result.internal_ipv6_prefix
     assert result.ip_cidr_range == "172.16.0.0/24"
     assert not result.ipv6_cidr_range
-    assert not result.log_config.enable
+    assert result.log_config.enable
+    assert result.log_config.aggregation_interval == "INTERVAL_5_SEC"
+    assert result.log_config.filter_expr == "true"
+    assert result.log_config.flow_sampling == 0.5  # noqa: PLR2004
+    assert result.log_config.metadata == "CUSTOM_METADATA"
+    assert Counter(result.log_config.metadata_fields) == Counter(FIXTURE_METADATA_FIELDS)
     assert result.name == f"{fixture_name}-us-we1"
     assert (
         result.network == f"https://www.googleapis.com/compute/v1/projects/{project_id}/global/networks/{fixture_name}"
@@ -168,10 +166,7 @@ def test_subnetwork_us_west1(
     assert result.purpose == "PRIVATE"
     assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1"
     assert not result.role
-    assert len(result.secondary_ip_ranges) == 1
-    for secondary in result.secondary_ip_ranges:
-        assert secondary.range_name == "test"
-        assert secondary.ip_cidr_range == "192.168.0.0/24"
+    assert not result.secondary_ip_ranges
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 
@@ -191,12 +186,17 @@ def test_subnetwork_us_east1(
     )
     assert result
     assert not result.description
-    assert not result.enable_flow_logs
+    assert result.enable_flow_logs
     assert not result.external_ipv6_prefix
     assert not result.internal_ipv6_prefix
     assert result.ip_cidr_range == "172.16.1.0/24"
     assert not result.ipv6_cidr_range
-    assert not result.log_config.enable
+    assert result.log_config.enable
+    assert result.log_config.aggregation_interval == "INTERVAL_5_SEC"
+    assert result.log_config.filter_expr == "true"
+    assert result.log_config.flow_sampling == 0.5  # noqa: PLR2004
+    assert result.log_config.metadata == "CUSTOM_METADATA"
+    assert Counter(result.log_config.metadata_fields) == Counter(FIXTURE_METADATA_FIELDS)
     assert result.name == f"{fixture_name}-us-ea1"
     assert (
         result.network == f"https://www.googleapis.com/compute/v1/projects/{project_id}/global/networks/{fixture_name}"
@@ -206,10 +206,7 @@ def test_subnetwork_us_east1(
     assert result.purpose == "PRIVATE"
     assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1"
     assert not result.role
-    assert len(result.secondary_ip_ranges) == 1
-    for secondary in result.secondary_ip_ranges:
-        assert secondary.range_name == "test"
-        assert secondary.ip_cidr_range == "192.168.1.0/24"
+    assert not result.secondary_ip_ranges
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 
