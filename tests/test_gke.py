@@ -43,19 +43,16 @@ def output(
             "name": fixture_name,
             "regions": [
                 "us-west1",
-                "us-central1",
+                "us-east1",
             ],
             "cidrs": {
-                "primary_ipv4_cidr": "172.16.0.0/12",
-                "primary_ipv4_subnet_size": 16,
                 "secondaries": {
                     "pods": {
                         "ipv4_cidr": "10.0.0.0/8",
-                        "ipv4_subnet_size": 14,
+                        "ipv4_subnet_size": 16,
                     },
                     "services": {
-                        "ipv4_cidr": "10.8.0.0/16",
-                        "ipv4_subnet_size": 20,
+                        "ipv4_cidr": "10.100.0.0/16",
                     },
                 },
             },
@@ -75,25 +72,25 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "region": "us-west1",
                 "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
-                "primary_ipv4_cidr": "172.16.0.0/16",
+                "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
                 "secondary_ipv4_cidrs": {
-                    "pods": "10.0.0.0/14",
-                    "services": "10.8.0.0/20",
+                    "pods": "10.0.0.0/16",
+                    "services": "10.100.0.0/24",
                 },
                 "gateway_address": "172.16.0.1",
             },
-            f"{fixture_name}-us-ce1": {
-                "region": "us-central1",
-                "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1",
-                "id": f"projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1",
-                "primary_ipv4_cidr": "172.17.0.0/16",
+            f"{fixture_name}-us-ea1": {
+                "region": "us-east1",
+                "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
+                "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
+                "primary_ipv4_cidr": "172.16.1.0/24",
                 "primary_ipv6_cidr": "",
                 "secondary_ipv4_cidrs": {
-                    "pods": "10.4.0.0/14",
-                    "services": "10.8.16.0/20",
+                    "pods": "10.1.0.0/16",
+                    "services": "10.100.1.0/24",
                 },
-                "gateway_address": "172.17.0.1",
+                "gateway_address": "172.16.1.1",
             },
         },
         "subnets_by_region": {
@@ -101,25 +98,25 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
                 "name": f"{fixture_name}-us-we1",
                 "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
                 "id": f"projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
-                "primary_ipv4_cidr": "172.16.0.0/16",
+                "primary_ipv4_cidr": "172.16.0.0/24",
                 "primary_ipv6_cidr": "",
                 "secondary_ipv4_cidrs": {
-                    "pods": "10.0.0.0/14",
-                    "services": "10.8.0.0/20",
+                    "pods": "10.0.0.0/16",
+                    "services": "10.100.0.0/24",
                 },
                 "gateway_address": "172.16.0.1",
             },
-            "us-central1": {
-                "name": f"{fixture_name}-us-ce1",
-                "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1",
-                "id": f"projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1",
-                "primary_ipv4_cidr": "172.17.0.0/16",
+            "us-east1": {
+                "name": f"{fixture_name}-us-ea1",
+                "self_link": f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
+                "id": f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
+                "primary_ipv4_cidr": "172.16.1.0/24",
                 "primary_ipv6_cidr": "",
                 "secondary_ipv4_cidrs": {
-                    "pods": "10.4.0.0/14",
-                    "services": "10.8.16.0/20",
+                    "pods": "10.1.0.0/16",
+                    "services": "10.100.1.0/24",
                 },
-                "gateway_address": "172.17.0.1",
+                "gateway_address": "172.16.1.1",
             },
         },
     }
@@ -145,7 +142,7 @@ def test_network(networks_client: compute_v1.NetworksClient, project_id: str, fi
     for subnetwork in result.subnetworks:
         assert subnetwork in [
             f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
-            f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1",
+            f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
         ]
 
 
@@ -167,7 +164,7 @@ def test_subnetwork_us_west1(
     assert not result.enable_flow_logs
     assert not result.external_ipv6_prefix
     assert not result.internal_ipv6_prefix
-    assert result.ip_cidr_range == "172.16.0.0/16"
+    assert result.ip_cidr_range == "172.16.0.0/24"
     assert not result.ipv6_cidr_range
     assert not result.log_config.enable
     assert result.name == f"{fixture_name}-us-we1"
@@ -182,12 +179,12 @@ def test_subnetwork_us_west1(
     assert len(result.secondary_ip_ranges) == 2  # noqa: PLR2004
     for secondary in result.secondary_ip_ranges:
         assert secondary.range_name in ["pods", "services"]
-        assert secondary.ip_cidr_range == ("10.0.0.0/14" if secondary.range_name == "pods" else "10.8.0.0/20")
+        assert secondary.ip_cidr_range == ("10.0.0.0/16" if secondary.range_name == "pods" else "10.100.0.0/24")
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 
 
-def test_subnetwork_us_central1(
+def test_subnetwork_us_east1(
     subnetworks_client: compute_v1.SubnetworksClient,
     project_id: str,
     fixture_name: str,
@@ -195,9 +192,9 @@ def test_subnetwork_us_central1(
     """Verify the subnetwork exists and matches expectations."""
     result = subnetworks_client.get(
         request=compute_v1.GetSubnetworkRequest(
-            subnetwork=f"{fixture_name}-us-ce1",
+            subnetwork=f"{fixture_name}-us-ea1",
             project=project_id,
-            region="us-central1",
+            region="us-east1",
         ),
     )
     assert result
@@ -205,22 +202,22 @@ def test_subnetwork_us_central1(
     assert not result.enable_flow_logs
     assert not result.external_ipv6_prefix
     assert not result.internal_ipv6_prefix
-    assert result.ip_cidr_range == "172.17.0.0/16"
+    assert result.ip_cidr_range == "172.16.1.0/24"
     assert not result.ipv6_cidr_range
     assert not result.log_config.enable
-    assert result.name == f"{fixture_name}-us-ce1"
+    assert result.name == f"{fixture_name}-us-ea1"
     assert (
         result.network == f"https://www.googleapis.com/compute/v1/projects/{project_id}/global/networks/{fixture_name}"
     )
     assert result.private_ip_google_access
     assert result.private_ipv6_google_access == "DISABLE_GOOGLE_ACCESS"
     assert result.purpose == "PRIVATE"
-    assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1"
+    assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1"
     assert not result.role
     assert len(result.secondary_ip_ranges) == 2  # noqa: PLR2004
     for secondary in result.secondary_ip_ranges:
         assert secondary.range_name in ["pods", "services"]
-        assert secondary.ip_cidr_range == ("10.4.0.0/14" if secondary.range_name == "pods" else "10.8.16.0/20")
+        assert secondary.ip_cidr_range == ("10.1.0.0/16" if secondary.range_name == "pods" else "10.100.1.0/24")
     assert result.stack_type == "IPV4_ONLY"
     assert not result.state
 
@@ -267,13 +264,13 @@ def test_routers_us_west1(routers_client: compute_v1.RoutersClient, project_id: 
     assert len(routers) == 0
 
 
-def test_routers_us_central1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
+def test_routers_us_east1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
     """Verify the router and NAT meets requirements."""
     routers = list(
         routers_client.list(
             request=compute_v1.ListRoutersRequest(
                 project=project_id,
-                region="us-central1",
+                region="us-east1",
                 filter=f"network eq .*/{fixture_name}$",
             ),
         ),

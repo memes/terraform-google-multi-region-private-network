@@ -49,7 +49,7 @@ def output(
             "name": fixture_name,
             "regions": [
                 "us-west1",
-                "us-central1",
+                "us-east1",
             ],
             "cidrs": {
                 "primary_ipv6_cidr": str(IPV6_CIDR),
@@ -86,14 +86,14 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
     assert ipv6_cidr.is_global
     assert subnet["secondary_ipv4_cidrs"] == {}
     assert subnet["gateway_address"] == "172.16.0.1"
-    assert output["subnets_by_name"][f"{fixture_name}-us-ce1"]
-    subnet = output["subnets_by_name"][f"{fixture_name}-us-ce1"]
-    assert subnet["region"] == "us-central1"
+    assert output["subnets_by_name"][f"{fixture_name}-us-ea1"]
+    subnet = output["subnets_by_name"][f"{fixture_name}-us-ea1"]
+    assert subnet["region"] == "us-east1"
     assert (
         subnet["self_link"]
-        == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1"
+        == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1"
     )
-    assert subnet["id"] == f"projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1"
+    assert subnet["id"] == f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1"
     assert subnet["primary_ipv4_cidr"] == "172.17.0.0/16"
     assert subnet["primary_ipv6_cidr"]
     ipv6_cidr = ipaddress.IPv6Network(subnet["primary_ipv6_cidr"])
@@ -118,14 +118,14 @@ def test_output_values(output: dict[str, Any], project_id: str, fixture_name: st
     assert ipv6_cidr.is_global
     assert subnet["secondary_ipv4_cidrs"] == {}
     assert subnet["gateway_address"] == "172.16.0.1"
-    assert output["subnets_by_region"]["us-central1"]
-    subnet = output["subnets_by_region"]["us-central1"]
-    assert subnet["name"] == f"{fixture_name}-us-ce1"
+    assert output["subnets_by_region"]["us-east1"]
+    subnet = output["subnets_by_region"]["us-east1"]
+    assert subnet["name"] == f"{fixture_name}-us-ea1"
     assert (
         subnet["self_link"]
-        == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1"
+        == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1"
     )
-    assert subnet["id"] == f"projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1"
+    assert subnet["id"] == f"projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1"
     assert subnet["primary_ipv4_cidr"] == "172.17.0.0/16"
     assert subnet["primary_ipv6_cidr"]
     ipv6_cidr = ipaddress.IPv6Network(subnet["primary_ipv6_cidr"])
@@ -155,7 +155,7 @@ def test_network(networks_client: compute_v1.NetworksClient, project_id: str, fi
     for subnetwork in result.subnetworks:
         assert subnetwork in [
             f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-west1/subnetworks/{fixture_name}-us-we1",
-            f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1/subnetworks/{fixture_name}-us-ce1",
+            f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1/subnetworks/{fixture_name}-us-ea1",
         ]
 
 
@@ -199,7 +199,7 @@ def test_subnetwork_us_west1(
     assert not result.state
 
 
-def test_subnetwork_us_central1(
+def test_subnetwork_us_east1(
     subnetworks_client: compute_v1.SubnetworksClient,
     project_id: str,
     fixture_name: str,
@@ -207,9 +207,9 @@ def test_subnetwork_us_central1(
     """Verify the subnetwork exists and matches expectations."""
     result = subnetworks_client.get(
         request=compute_v1.GetSubnetworkRequest(
-            subnetwork=f"{fixture_name}-us-ce1",
+            subnetwork=f"{fixture_name}-us-ea1",
             project=project_id,
-            region="us-central1",
+            region="us-east1",
         ),
     )
     assert result
@@ -225,14 +225,14 @@ def test_subnetwork_us_central1(
     assert ipv6_cidr
     assert ipv6_cidr.is_global
     assert not result.log_config.enable
-    assert result.name == f"{fixture_name}-us-ce1"
+    assert result.name == f"{fixture_name}-us-ea1"
     assert (
         result.network == f"https://www.googleapis.com/compute/v1/projects/{project_id}/global/networks/{fixture_name}"
     )
     assert result.private_ip_google_access
     assert result.private_ipv6_google_access == "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE"
     assert result.purpose == "PRIVATE"
-    assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-central1"
+    assert result.region == f"https://www.googleapis.com/compute/v1/projects/{project_id}/regions/us-east1"
     assert not result.role
     assert not result.secondary_ip_ranges
     assert result.stack_type == "IPV4_IPV6"
@@ -281,13 +281,13 @@ def test_routers_us_west1(routers_client: compute_v1.RoutersClient, project_id: 
     assert len(routers) == 0
 
 
-def test_routers_us_central1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
+def test_routers_us_east1(routers_client: compute_v1.RoutersClient, project_id: str, fixture_name: str) -> None:
     """Verify the router and NAT meets requirements."""
     routers = list(
         routers_client.list(
             request=compute_v1.ListRoutersRequest(
                 project=project_id,
-                region="us-central1",
+                region="us-east1",
                 filter=f"network eq .*/{fixture_name}$",
             ),
         ),
