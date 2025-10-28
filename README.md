@@ -37,11 +37,11 @@ egress traffic, and IPv6 ULA addressing enabled.
 
 ## Examples
 
-### East-west dual region private VPC network
+### Dual region (us-west1 and us-east1) private VPC network
 
 |Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR||Not enabled|
 |Secondary IPv4 CIDRs||None added|
@@ -54,21 +54,22 @@ egress traffic, and IPv6 ULA addressing enabled.
 |*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 
+<!-- Example tested in tests/test_dual_region.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
 }
 ```
 
-### East-west dual region private VPC network, with primary subnet offset and steps
+### Dual region (us-west1 and us-east1) private VPC network, with primary subnet offset and steps
 
 |Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (as `172.16.10.0/16`, `172.16.20.0/16`)|
 |Primary IPv6 CIDR||Not enabled|
 |Secondary IPv4 CIDRs||None added|
@@ -81,30 +82,27 @@ module "vpc" {
 |*Restricted Google API DNS zone(s)*||*Not managed by this module; see [restricted-apis-dns]*|
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 
+<!-- Example tested in tests/test_primary_offset_step.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
     name       = "internal-us"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
     cidrs      = {
-        primary_ipv4_cidr          = "172.16.0.0/12"
-        primary_ipv4_subnet_size   = 24
         primary_ipv4_subnet_offset = 10
         primary_ipv4_subnet_step   = 10
-        primary_ipv6_cidr          = null
-        secondaries = {}
     }
 }
 ```
 
-### East-west dual region with secondary ranges for GKE
+### Dual region (us-west1 and us-east1) with secondary ranges for GKE
 
 <!-- markdownlint-disable MD013 MD033 MD034-->
 |Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR||Not enabled|
 |Secondary IPv4 CIDRs|&check;|&bullet; `pods` CIDR `10.x.0.0/16` per region<br/>&bullet; `services` CIDR `10.100.x.0/24` per region|
@@ -118,42 +116,33 @@ module "vpc" {
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD013 MD033 MD034-->
 
+<!-- Example tested in tests/test_gke.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
     cidrs      = {
-        primary_ipv4_cidr          = "172.16.0.0/12"
-        primary_ipv4_subnet_size   = 24
-        primary_ipv4_subnet_offset = 0
-        primary_ipv4_subnet_step   = 1
-        primary_ipv6_cidr          = null
         secondaries = {
             pods = {
-                ipv4_cidr          = "10.0.0.0/8"
-                ipv4_subnet_size   = 16
-                ipv4_subnet_offset = 0
-                ipv4_subnet_step   = 1
+                ipv4_cidr        = "10.0.0.0/8"
+                ipv4_subnet_size = 16
             }
             services = {
-                ipv4_cidr          = "10.100.0.0/16"
-                ipv4_subnet_size   = 24
-                ipv4_subnet_offset = 0
-                ipv4_subnet_step   = 1
+                ipv4_cidr = "10.100.0.0/16"
             }
         }
     }
 }
 ```
 
-### East-west dual region with Cloud NAT
+### Dual region (us-west1 and us-east1) with Cloud NAT
 
 <!-- markdownlint-disable MD033 MD034-->
 |Item|Managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR||Not enabled|
 |Secondary IPv4 CIDRs||None added|
@@ -167,25 +156,25 @@ module "vpc" {
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
+<!-- Example tested in tests/test_tagged_nat.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
     nat = {
-        tags           = ["allow-nat"]
-        logging_filter = null
+        tags = ["allow-nat"]
     }
 }
 ```
 
-### East-west dual region with auto-allocated IPv6 CIDR
+### Dual region (us-west1 and us-east1) with auto-allocated IPv6 CIDR
 
 <!-- markdownlint-disable MD033 MD034-->
 |Item|Enable/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR|&check;|Auto-allocated `/48` from `fd20::/20` (`/64` per region)|
 |Secondary IPv4 CIDRs||None added|
@@ -199,28 +188,25 @@ module "vpc" {
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
+<!-- Example tested in tests/test_ipv6_ula.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
     options    = {
-        mtu                           = 1460
-        delete_default_routes         = true
-        enable_restricted_apis_access = true
-        regional_routing_mode         = false
-        ipv6_ula                      = true
+        ipv6_ula = true
     }
 }
 ```
 
-### East-west dual region with explicit IPv6 CIDR
+### Dual region (us-west1 and us-east1) with explicit IPv6 CIDR
 
 <!-- markdownlint-disable MD033 MD034-->
 |Item|Enable/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR|&check;|`fd20:0:0309:0:0:0:0:0/48` (`/64` per region)|
 |Secondary IPv4 CIDRs||None added|
@@ -233,36 +219,28 @@ module "vpc" {
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
+<!-- Example tested in tests/test_ipv6_ula_manual.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
     cidrs      = {
-        primary_ipv4_cidr          = "172.16.0.0/12"
-        primary_ipv4_subnet_size   = 24
-        primary_ipv4_subnet_offset = 0
-        primary_ipv4_subnet_step   = 1
-        primary_ipv6_cidr          = "fd20:0:0309:0:0:0:0:0/48"
-        secondaries                = {}
+        primary_ipv6_cidr = "fd20:0:0309:0:0:0:0:0/48"
     }
     options    = {
-        mtu                           = 1460
-        delete_default_routes         = true
-        enable_restricted_apis_access = true
-        regional_routing_mode         = false
-        ipv6_ula                      = true
+        ipv6_ula = true
     }
 }
 ```
 
-### East-west dual region with Private Google APIs access
+### Dual region (us-west1 and us-east1) with Private Google APIs access
 
 <!-- markdownlint-disable MD033 MD034-->
 |Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR||Not enabled|
 |Secondary IPv4 CIDRs||Not enabled|
@@ -276,36 +254,25 @@ module "vpc" {
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
+<!-- Example tested in tests/test_disable_restricted_apis.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
-    regions    = ["us-east1", "us-west1"]
-    cidrs      = {
-        primary_ipv4_cidr          = "172.16.0.0/12"
-        primary_ipv4_subnet_size   = 24
-        primary_ipv4_subnet_offset = 0
-        primary_ipv4_subnet_step   = 1
-        primary_ipv6_cidr          = null
-        secondaries                = {}
-    }
+    regions    = ["us-west1", "us-east1"]
     options = {
-        mtu                           = 1460
-        delete_default_routes         = true
         enable_restricted_apis_access = false
-        regional_routing_mode         = false
-        ipv6_ula                      = false
     }
 }
 ```
 
-### East-west dual region with Restricted Google APIs access via PSC
+### Dual region (us-west1 and us-east1) with Restricted Google APIs access via PSC
 
 <!-- markdownlint-disable MD033 MD034-->
 |Item|Enabled/managed by module|Description|
 |----|-----------------|-----------|
-|Regions|&check;|`us-east1` and `us-west1`|
+|Regions|&check;|`us-west1` and `us-east1`|
 |Primary IPv4 CIDR|&check;|`172.16.0.0/12` (`/24` per region)|
 |Primary IPv6 CIDR||Not enabled|
 |Secondary IPv4 CIDRs||Not enabled|
@@ -320,15 +287,15 @@ module "vpc" {
 |*Bastion*||*Not managed by this module; see [private-bastion]*|
 <!-- markdownlint-enable MD033 MD034-->
 
+<!-- Example tested in tests/test_psc.py -->
 ```hcl
 module "vpc" {
     source     = "memes/multi-region-private-network/google"
     version    = "5.0.0"
     project_id = "my-project-id"
-    regions    = ["us-east1", "us-west1"]
+    regions    = ["us-west1", "us-east1"]
     psc        = {
-        address           = "10.10.10.10"
-        service_directory = null
+        address = "10.10.10.10"
     }
 }
 ```
