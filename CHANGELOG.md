@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v5.0.0...v5.1.0) (2025-10-28)
+
+
+### Features
+
+* Make fields in complex variables optional ([5c46f3f](https://github.com/memes/terraform-google-multi-region-private-network/commit/5c46f3f663dc5d04fbad41f6e72abfa0b5204a88))
+
 ## [5.0.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v4.0.1...v5.0.0) (2025-09-06)
 
 
