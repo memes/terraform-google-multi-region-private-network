@@ -14,6 +14,6 @@ fileignoreconfig:
 - filename: main.tf
   checksum: 63b47360421fb552162d0e597f76979da6718d841cab9d6d2b6f78ffa8aca911
 - filename: uv.lock
-  checksum: 137a140f29ef46f250808b74caae5db25fd261cca6c422e287b3e3178dda5392
+  checksum: fbbb4ebbfd2e47d90a0d55c816731974fc58188aad18c4838ee9915e90d3743e
 - filename: README.md
   checksum: 1fc6fbec8be660ffb3033e400934ad758163a5a4d86bb3dfcdeba77b4c0bf23b

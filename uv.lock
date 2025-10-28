@@ -194,7 +194,7 @@ wheels = [
 
 [[package]]
 name = "google-api-core"
-version = "2.27.0"
+version = "2.28.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-auth" },
@@ -203,9 +203,9 @@ dependencies = [
     { name = "protobuf" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/99/6c8b44ecc28026fd9441d7fcc5434ee1b3976c491f2f810b464c4702c975/google_api_core-2.27.0.tar.gz", hash = "sha256:d32e2f5dd0517e91037169e75bf0a9783b255aff1d11730517c0b2b29e9db06a", size = 168851, upload-time = "2025-10-22T23:54:14.195Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/27/77ec922bf9b10ff605192cc6f7164f1448e60a9404290ed9b9c33589b1df/google_api_core-2.28.0.tar.gz", hash = "sha256:4743b7d45fe8c0930e59928b1bade287242910f30b06ff9b22f139a3e33271b8", size = 176510, upload-time = "2025-10-27T22:50:27.778Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/93/ecf9f7caa99c71e969091e9a78789f11b2dea5c684917eab7c54a8d13560/google_api_core-2.27.0-py3-none-any.whl", hash = "sha256:779a380db4e21a4ee3d717cf8efbf324e53900bf37e1ffb273e5348a9916dd42", size = 167110, upload-time = "2025-10-22T23:54:12.805Z" },
+    { url = "https://files.pythonhosted.org/packages/54/8a/c75ed5fd7819742201ffffbd61bb081af4819ea882a6b84930fa93f8e96f/google_api_core-2.28.0-py3-none-any.whl", hash = "sha256:b4362b0e2e6bc06037cfb0e2b28e2fe0c3f9d760dc311f314d5fb373768c7387", size = 173371, upload-time = "2025-10-27T22:50:25.853Z" },
 ]
 
 [package.optional-dependencies]
@@ -216,16 +216,16 @@ grpc = [
 
 [[package]]
 name = "google-auth"
-version = "2.41.1"
+version = "2.42.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
     { name = "pyasn1-modules" },
     { name = "rsa" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/af/5129ce5b2f9688d2fa49b463e544972a7c82b0fdb50980dafee92e121d9f/google_auth-2.41.1.tar.gz", hash = "sha256:b76b7b1f9e61f0cb7e88870d14f6a94aeef248959ef6992670efee37709cbfd2", size = 292284, upload-time = "2025-09-30T22:51:26.363Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/75/28881e9d7de9b3d61939bc9624bd8fa594eb787a00567aba87173c790f09/google_auth-2.42.0.tar.gz", hash = "sha256:9bbbeef3442586effb124d1ca032cfb8fb7acd8754ab79b55facd2b8f3ab2802", size = 295400, upload-time = "2025-10-28T17:38:08.599Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/a4/7319a2a8add4cc352be9e3efeff5e2aacee917c85ca2fa1647e29089983c/google_auth-2.41.1-py2.py3-none-any.whl", hash = "sha256:754843be95575b9a19c604a848a41be03f7f2afd8c019f716dc1f51ee41c639d", size = 221302, upload-time = "2025-09-30T22:51:24.212Z" },
+    { url = "https://files.pythonhosted.org/packages/87/24/ec82aee6ba1a076288818fe5cc5125f4d93fffdc68bb7b381c68286c8aaa/google_auth-2.42.0-py2.py3-none-any.whl", hash = "sha256:f8f944bcb9723339b0ef58a73840f3c61bc91b69bf7368464906120b55804473", size = 222550, upload-time = "2025-10-28T17:38:05.496Z" },
 ]
 
 [[package]]
@@ -465,15 +465,15 @@ wheels = [
 
 [[package]]
 name = "pyright"
-version = "1.1.406"
+version = "1.1.407"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "nodeenv" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f7/16/6b4fbdd1fef59a0292cbb99f790b44983e390321eccbc5921b4d161da5d1/pyright-1.1.406.tar.gz", hash = "sha256:c4872bc58c9643dac09e8a2e74d472c62036910b3bd37a32813989ef7576ea2c", size = 4113151, upload-time = "2025-10-02T01:04:45.488Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/1b/0aa08ee42948b61745ac5b5b5ccaec4669e8884b53d31c8ec20b2fcd6b6f/pyright-1.1.407.tar.gz", hash = "sha256:099674dba5c10489832d4a4b2d302636152a9a42d317986c38474c76fe562262", size = 4122872, upload-time = "2025-10-24T23:17:15.145Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/a2/e309afbb459f50507103793aaef85ca4348b66814c86bc73908bdeb66d12/pyright-1.1.406-py3-none-any.whl", hash = "sha256:1d81fb43c2407bf566e97e57abb01c811973fdb21b2df8df59f870f688bdca71", size = 5980982, upload-time = "2025-10-02T01:04:43.137Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/93/b69052907d032b00c40cb656d21438ec00b3a471733de137a3f65a49a0a0/pyright-1.1.407-py3-none-any.whl", hash = "sha256:6dd419f54fcc13f03b52285796d65e639786373f433e243f8b94cf93a7444d21", size = 5997008, upload-time = "2025-10-24T23:17:13.159Z" },
 ]
 
 [package.optional-dependencies]
