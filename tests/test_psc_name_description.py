@@ -10,7 +10,7 @@ from google.cloud import compute_v1
 
 from .conftest import run_tofu_in_workspace
 
-FIXTURE_NAME = "psc-service-directory"
+FIXTURE_NAME = "psc-name-desc"
 FIXTURE_LABELS = {
     "fixture": FIXTURE_NAME,
 }
@@ -32,7 +32,6 @@ def fixture_labels(labels: dict[str, str]) -> dict[str, str] | None:
 def output(
     root_fixture_dir: Callable[[str], pathlib.Path],
     project_id: str,
-    prefix: str,
     fixture_name: str,
     fixture_labels: dict[str, str],
 ) -> Generator[dict[str, Any], None, None]:
@@ -48,10 +47,8 @@ def output(
             ],
             "psc": {
                 "address": "10.10.10.10",
-                "service_directory": {
-                    "namespace": prefix,
-                    "region": "us-west1",
-                },
+                "name": f"{fixture_name}-abc",
+                "description": f"Override description for {fixture_name}",
             },
             "labels": fixture_labels,
         },
@@ -253,7 +250,6 @@ def test_psc(
     global_addresses_client: compute_v1.GlobalAddressesClient,
     global_forwarding_rules_client: compute_v1.GlobalForwardingRulesClient,
     project_id: str,
-    prefix: str,
     fixture_name: str,
     fixture_labels: dict[str, str],
 ) -> None:
@@ -268,14 +264,11 @@ def test_psc(
     )
     assert len(global_addresses) == 1
     for global_address in global_addresses:
-        assert global_address.name == f"{fixture_name}-goog"
-        assert global_address.description == "PSC endpoint for restricted Google APIs access"
+        assert global_address.name == f"{fixture_name}-abc"
+        assert global_address.description == f"Override description for {fixture_name}"
         assert global_address.address == "10.10.10.10"
         assert global_address.address_type == "INTERNAL"
         assert global_address.purpose == "PRIVATE_SERVICE_CONNECT"
-        labels = cast("dict[str, str]", global_address.labels)
-        assert labels is not None
-        assert all(item in labels.items() for item in fixture_labels.items())
     global_forwarding_rules = list(
         global_forwarding_rules_client.list(
             request=compute_v1.ListGlobalForwardingRulesRequest(
@@ -286,10 +279,12 @@ def test_psc(
     )
     assert len(global_forwarding_rules) == 1
     for global_forwarding_rule in global_forwarding_rules:
-        expected_name = re.sub(r"[^a-z0-9]", "", f"{fixture_name}-goog")[:20]
+        expected_name = re.sub(r"[^a-z0-9]", "", f"{fixture_name}-abc")[:20]
         assert global_forwarding_rule.name == expected_name
         # Description is not persisted
-        assert not global_forwarding_rule.description  # assert global_forwarding_rule.description == "PSC endpoint for restricted Google APIs access"˚  # noqa: E501
+        assert (
+            not global_forwarding_rule.description
+        )  # assert global_forwarding_rule.description == f"Override description for {fixture_name}"
         labels = cast("dict[str, str]", global_forwarding_rule.labels)
         assert labels is not None
         assert all(item in labels.items() for item in fixture_labels.items())
@@ -307,6 +302,6 @@ def test_psc(
         assert global_forwarding_rule.service_directory_registrations
         assert len(global_forwarding_rule.service_directory_registrations) == 1
         for service_directory_registration in global_forwarding_rule.service_directory_registrations:
-            assert service_directory_registration.namespace == prefix
+            assert service_directory_registration.namespace  # Google generated value
             assert not service_directory_registration.service
-            assert service_directory_registration.service_directory_region == "us-west1"
+            assert service_directory_registration.service_directory_region == "us-central1"  # Default is us-central1

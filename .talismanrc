@@ -10,10 +10,10 @@ fileignoreconfig:
 - filename: .github/workflows/pre-commit.yml
   checksum: d973823a6d233c44075ad96c2f92e2d2522b3c5767ef6e8376f0731e8a55ab38
 - filename: variables.tf
-  checksum: 7a1413437e3f8b940fdd9bd4738d5994a8311cbde94acdcf5a3e0e77a3e6ea9b
+  checksum: 9b3937a412d5205c502cda7f794fcc885b37f50aa576163e293e22a5be6e198c
 - filename: main.tf
-  checksum: 63b47360421fb552162d0e597f76979da6718d841cab9d6d2b6f78ffa8aca911
+  checksum: 8962456b52c85583d69a23c95e25db8cc57b592fc240911daddb23ec6273bf4d
 - filename: uv.lock
   checksum: b01bda6e00f88a28e8fb3858cf2ae6dd8f247ec1cd4e21b3ff6ca8ef26d757b4
 - filename: README.md
-  checksum: 1fc6fbec8be660ffb3033e400934ad758163a5a4d86bb3dfcdeba77b4c0bf23b
+  checksum: 75488045a58cf0b87ab137f7ac5d687e4409454cef930be430a768d2b7fbb509
