@@ -124,20 +124,27 @@ resource "google_compute_router_nat" "nat" {
 }
 
 resource "google_compute_global_address" "psc" {
-  for_each     = coalesce(try(var.psc.address, null), "unspecified") == "unspecified" ? {} : { (var.name) = var.psc.address }
+  for_each = coalesce(try(var.psc.address, null), "unspecified") == "unspecified" ? {} : { coalesce(try(var.psc.name, null), format("%s-goog", var.name)) = {
+    address     = var.psc.address
+    description = coalesce(try(var.psc.description, null), format("PSC endpoint for %s Google APIs access", try(var.options.enable_restricted_apis_access, true) ? "restricted" : "private"))
+    }
+  }
   project      = google_compute_network.network.project
   name         = each.key
+  description  = each.value.description
   address_type = "INTERNAL"
   purpose      = "PRIVATE_SERVICE_CONNECT"
   network      = google_compute_network.network.id
-  address      = each.value
+  address      = each.value.address
   labels       = var.labels
 }
 
 resource "google_compute_global_forwarding_rule" "psc" {
-  for_each              = google_compute_global_address.psc
-  project               = google_compute_network.network.project
-  name                  = substr(replace(each.key, "/[^a-z0-9]/", ""), 0, 20)
+  for_each = google_compute_global_address.psc
+  project  = google_compute_network.network.project
+  name     = substr(replace(each.key, "/[^a-z0-9]/", ""), 0, 20)
+  # Description is not being persisted; disable
+  # description           = coalesce(try(var.psc.description, null), format("PSC endpoint for %s Google APIs access", try(var.options.enable_restricted_apis_access, true) ? "restricted" : "private"))
   target                = try(var.options.enable_restricted_apis_access, true) ? "vpc-sc" : "all-apis"
   network               = google_compute_network.network.self_link
   ip_address            = each.value.address

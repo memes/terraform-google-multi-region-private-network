@@ -19,8 +19,8 @@ variable "name" {
   }
   default     = "restricted"
   description = <<-EOD
-  The name to use when naming resources managed by this module. Must be RFC1035
-  compliant and between 1 and 55 characters in length, inclusive.
+  The name to use when naming resources managed by this module. Must be RFC1035 compliant and between 1 and 55 characters
+  in length, inclusive.
   EOD
 }
 
@@ -44,8 +44,7 @@ variable "labels" {
   }
   default     = {}
   description = <<-EOD
-  An optional map of key:value labels to apply to the resources. Default value
-  is an empty map.
+  An optional map of key:value labels to apply to the resources. Default value is an empty map.
   EOD
 }
 
@@ -53,7 +52,7 @@ variable "regions" {
   type     = list(string)
   nullable = false
   validation {
-    condition     = alltrue([for region in var.regions : can(regex("^[a-z]{2,}-[a-z]{2,}[0-9]$", region))])
+    condition     = length(var.regions) > 0 && alltrue([for region in var.regions : can(regex("^[a-z]{2,}-[a-z]{2,}[0-9]$", region))])
     error_message = "There must be at least one entry, and it must be a valid Google Cloud region name."
   }
   description = <<-EOD
@@ -85,9 +84,8 @@ variable "cidrs" {
     secondaries                = null
   }
   description = <<-EOD
-  Sets the primary IPv4 CIDR and regional subnet size to use with the network,
-  an optional IPv6 ULA CIDR to use with the network, and any optional secondary
-  IPv4 CIDRs and sizes.
+  Sets the primary IPv4 CIDR and regional subnet size to use with the network, an optional IPv6 ULA CIDR to use with the
+  network, and any optional secondary IPv4 CIDRs and sizes.
   EOD
 }
 
@@ -163,11 +161,13 @@ variable "psc" {
       namespace = string
       region    = string
     }), null)
+    name        = optional(string)
+    description = optional(string)
   })
   nullable = true
   validation {
     condition     = var.psc == null ? true : (can(cidrhost(format("%s/32", var.psc.address), 0)) || can(cidrhost(format("%s/128", var.psc.address), 0))) && (var.psc.service_directory == null || (can(regex("^[a-z][a-z0-9_-]{0,62}$", var.psc.service_directory.namespace)) && can(regex("^(?:[a-z]{2,}-[a-z]{2,}[0-9]|unspecified)$", coalesce(try(var.psc.service_directory.region, null), "unspecified")))))
-    error_message = "If psc is not null, it must have a valid IPv4 or IPv6 address to assign, and an optional valid service_directory integration namespace and optional region."
+    error_message = "If psc is not null, it must have a valid IPv4 or IPv6 address to assign, and an optional valid service_directory integration namespace and/or region."
   }
   default     = null
   description = <<-EOD

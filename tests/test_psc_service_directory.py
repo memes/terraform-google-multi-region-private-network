@@ -2,7 +2,7 @@
 
 import pathlib
 import re
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from typing import Any, cast
 
 import pytest
@@ -30,7 +30,7 @@ def fixture_labels(labels: dict[str, str]) -> dict[str, str] | None:
 
 @pytest.fixture(scope="module")
 def output(
-    root_fixture_dir: pathlib.Path,
+    root_fixture_dir: Callable[[str], pathlib.Path],
     project_id: str,
     prefix: str,
     fixture_name: str,
@@ -38,8 +38,7 @@ def output(
 ) -> Generator[dict[str, Any], None, None]:
     """Execute Tofu (or Terraform) with the input vars suitable for this fixture, yielding the module output."""
     with run_tofu_in_workspace(
-        fixture=root_fixture_dir,
-        workspace=fixture_name,
+        fixture=root_fixture_dir(FIXTURE_NAME),
         tfvars={
             "project_id": project_id,
             "name": fixture_name,
@@ -269,7 +268,8 @@ def test_psc(
     )
     assert len(global_addresses) == 1
     for global_address in global_addresses:
-        assert global_address.name == fixture_name
+        assert global_address.name == f"{fixture_name}-goog"
+        assert global_address.description == "PSC endpoint for restricted Google APIs access"
         assert global_address.address == "10.10.10.10"
         assert global_address.address_type == "INTERNAL"
         assert global_address.purpose == "PRIVATE_SERVICE_CONNECT"
@@ -286,8 +286,10 @@ def test_psc(
     )
     assert len(global_forwarding_rules) == 1
     for global_forwarding_rule in global_forwarding_rules:
-        expected_name = re.sub(r"[^a-z0-9]", "", fixture_name)[:20]
+        expected_name = re.sub(r"[^a-z0-9]", "", f"{fixture_name}-goog")[:20]
         assert global_forwarding_rule.name == expected_name
+        # Description is not persisted
+        assert not global_forwarding_rule.description  # assert global_forwarding_rule.description == "PSC endpoint for restricted Google APIs access"˚  # noqa: E501
         labels = cast("dict[str, str]", global_forwarding_rule.labels)
         assert labels is not None
         assert all(item in labels.items() for item in fixture_labels.items())

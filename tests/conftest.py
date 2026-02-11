@@ -3,9 +3,10 @@
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import tempfile
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from typing import Any
 
@@ -14,6 +15,7 @@ from google import auth
 from google.cloud import compute_v1
 
 DEFAULT_PREFIX = "mrpn"
+DEFAULT_TF_STATE_PREFIX = "tests/terraform-google-multi-region-private-network"
 
 
 @pytest.fixture(scope="session")
@@ -61,15 +63,89 @@ def labels() -> dict[str, str]:
 
 
 @pytest.fixture(scope="session")
-def root_fixture_dir() -> pathlib.Path:
-    """Return the fully-qualified directory at the fixture at the root of this repo."""
-    root_fixture_dir = pathlib.Path(__file__).parent.joinpath("fixtures/root").resolve()
-    assert root_fixture_dir.exists()
-    assert root_fixture_dir.is_dir()
-    assert root_fixture_dir.joinpath("main.tf").exists()
-    assert root_fixture_dir.joinpath("outputs.tf").exists()
-    assert root_fixture_dir.joinpath("variables.tf").exists()
-    return root_fixture_dir
+def tf_state_bucket() -> str:
+    """Return the Google Cloud Storage bucket name to use for tofu/terraform state files."""
+    bucket = os.getenv("TEST_GOOGLE_TF_STATE_BUCKET")
+    if bucket:
+        bucket = bucket.strip()
+    assert bucket
+    return bucket
+
+
+@pytest.fixture(scope="session")
+def tf_state_prefix() -> str:
+    """Return the prefix to use for tofu/terraform state files in bucket.
+
+    Preference will be given to the variable TEST_GOOGLE_TF_STATE_PREFIX with fallback to the default value of
+    'tests/terraform-google-f5-bigip-ha'.
+    """
+    prefix = os.getenv("TEST_GOOGLE_TF_STATE_PREFIX", DEFAULT_TF_STATE_PREFIX)
+    if prefix:
+        prefix = prefix.strip()
+    if not prefix:
+        prefix = DEFAULT_TF_STATE_PREFIX
+    assert prefix
+    return prefix
+
+
+@pytest.fixture(scope="session")
+def backend_tf_builder(tf_state_bucket: str, tf_state_prefix: str) -> Callable[[pathlib.Path, str], None]:
+    """Create or overwrite a _backend.tf file in the provided fixture_dir that configures GCS backend for state."""
+
+    def _backend_tf(fixture_dir: pathlib.Path, name: str) -> None:
+        assert fixture_dir.exists()
+        assert name
+        fixture_dir.joinpath("_backend.tf").write_text(
+            "\n".join(
+                [
+                    "terraform {",
+                    '  backend "gcs" {',
+                    f'    bucket = "{tf_state_bucket}"',
+                    f'    prefix = "{tf_state_prefix}/{name}"',
+                    "  }",
+                    "}",
+                ],
+            ),
+        )
+
+    return _backend_tf
+
+
+@pytest.fixture(scope="session")
+def common_fixture_dir_ignores() -> Callable[[Any, list[str]], set[str]]:
+    """Return a set of ignore patterns that are unrelated to module sources or supporting files."""
+    return shutil.ignore_patterns(".*", "*.md", "*.toml", "uv.lock", "tests")
+
+
+@pytest.fixture(scope="session")
+def root_fixture_dir(
+    tmp_path_factory: pytest.TempPathFactory,
+    backend_tf_builder: Callable[..., None],
+    common_fixture_dir_ignores: Callable[[Any, list[str]], set[str]],
+) -> Callable[[str], pathlib.Path]:
+    """Return a builder that makes a copy of the root module with backend configured appropriately."""
+    root_module_dir = pathlib.Path(__file__).parent.parent.resolve()
+    assert root_module_dir.exists()
+    assert root_module_dir.is_dir()
+    assert root_module_dir.joinpath("main.tf").exists()
+    assert root_module_dir.joinpath("outputs.tf").exists()
+    assert root_module_dir.joinpath("variables.tf").exists()
+
+    def _builder(name: str) -> pathlib.Path:
+        fixture_dir = tmp_path_factory.mktemp(name)
+        shutil.copytree(
+            src=root_module_dir,
+            dst=fixture_dir,
+            dirs_exist_ok=True,
+            ignore=common_fixture_dir_ignores,
+        )
+        backend_tf_builder(
+            fixture_dir=fixture_dir,
+            name=name,
+        )
+        return fixture_dir
+
+    return _builder
 
 
 @pytest.fixture(scope="session")
@@ -113,11 +189,22 @@ def skip_destroy_phase() -> bool:
     return os.getenv("TEST_SKIP_DESTROY_PHASE", "False").lower() in ["true", "t", "yes", "y", "1"]
 
 
+def get_tf_command() -> str:
+    """Return an explicit command to use for module execution or the first tofu or terraform binary found in PATH.
+
+    NOTE: Preference will be given to the value of environment variable TEST_TF_COMMAND.
+    """
+    tf_command = os.getenv("TEST_TF_COMMAND") or shutil.which("tofu") or shutil.which("terraform")
+    assert tf_command, "A tofu or terraform binary could not be determined"
+    return tf_command
+
+
 @contextmanager
 def run_tofu_in_workspace(
     fixture: pathlib.Path,
-    workspace: str | None,
     tfvars: dict[str, Any] | None,
+    workspace: str | None = None,
+    tf_command: str | None = None,
 ) -> Generator[dict[str, Any], None, None]:
     """Execute tofu fixture lifecycle in an optional workspace, yielding the output post-apply.
 
@@ -125,7 +212,8 @@ def run_tofu_in_workspace(
     """
     if tfvars is None:
         tfvars = {}
-    tf_command = os.getenv("TEST_TF_COMMAND", "tofu")
+    if not tf_command:
+        tf_command = get_tf_command()
     if workspace is not None and workspace != "":
         subprocess.run(
             [
@@ -156,10 +244,22 @@ def run_tofu_in_workspace(
         suffix=".json",
         encoding="utf-8",
         delete_on_close=False,
-        delete=False,
+        delete=True,
     ) as tfvar_file:
         json.dump(tfvars, tfvar_file, ensure_ascii=False, indent=2)
         tfvar_file.close()
+        # Validate module
+        subprocess.run(
+            [
+                tf_command,
+                f"-chdir={fixture!s}",
+                "validate",
+                "-no-color",
+                f"-var-file={tfvar_file.name}",
+            ],
+            check=True,
+            capture_output=True,
+        )
         # Execute plan then apply with a common plan file.
         with tempfile.NamedTemporaryFile(
             mode="w+b",

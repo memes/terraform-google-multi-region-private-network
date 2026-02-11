@@ -1,15 +1,16 @@
-"""Test fixture for dual-region deployment with null description."""
+"""Test fixture for dual-region deployment with PSC."""
 
 import pathlib
+import re
 from collections.abc import Callable, Generator
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from google.cloud import compute_v1
 
 from .conftest import run_tofu_in_workspace
 
-FIXTURE_NAME = "null-desc"
+FIXTURE_NAME = "psc-name-desc"
 FIXTURE_LABELS = {
     "fixture": FIXTURE_NAME,
 }
@@ -40,11 +41,15 @@ def output(
         tfvars={
             "project_id": project_id,
             "name": fixture_name,
-            "description": None,
             "regions": [
                 "us-west1",
                 "us-east1",
             ],
+            "psc": {
+                "address": "10.10.10.10",
+                "name": f"{fixture_name}-abc",
+                "description": f"Override description for {fixture_name}",
+            },
             "labels": fixture_labels,
         },
     ) as output:
@@ -109,7 +114,7 @@ def test_network(networks_client: compute_v1.NetworksClient, project_id: str, fi
     )
     assert result
     assert not result.auto_create_subnetworks
-    assert result.description == ""
+    assert result.description == "custom vpc"
     assert not result.enable_ula_internal_ipv6
     assert result.mtu == 1460  # noqa: PLR2004
     assert result.name == fixture_name
@@ -206,15 +211,7 @@ def test_routes(routes_client: compute_v1.RoutesClient, project_id: str, fixture
     default_routes = [route for route in routes if route.dest_range in ["0.0.0.0/0", "::/0"] and not route.tags]
     assert len(default_routes) == 0
     restricted_apis_routes = [route for route in routes if route.dest_range == "199.36.153.4/30"]
-    assert len(restricted_apis_routes) == 1
-    for route in restricted_apis_routes:
-        assert route.name == f"{fixture_name}-restricted-apis"
-        assert route.description == "Route for restricted Google API access"
-        assert (
-            route.next_hop_gateway
-            == f"https://www.googleapis.com/compute/v1/projects/{project_id}/global/gateways/default-internet-gateway"
-        )
-        assert route.priority == 1000  # noqa: PLR2004
+    assert len(restricted_apis_routes) == 0
     private_apis_routes = [route for route in routes if route.dest_range == "199.36.153.8/30"]
     assert len(private_apis_routes) == 0
     tagged_routes = [route for route in routes if route.tags]
@@ -254,6 +251,7 @@ def test_psc(
     global_forwarding_rules_client: compute_v1.GlobalForwardingRulesClient,
     project_id: str,
     fixture_name: str,
+    fixture_labels: dict[str, str],
 ) -> None:
     """Verify PSC meets requirements."""
     global_addresses = list(
@@ -264,7 +262,13 @@ def test_psc(
             ),
         ),
     )
-    assert len(global_addresses) == 0
+    assert len(global_addresses) == 1
+    for global_address in global_addresses:
+        assert global_address.name == f"{fixture_name}-abc"
+        assert global_address.description == f"Override description for {fixture_name}"
+        assert global_address.address == "10.10.10.10"
+        assert global_address.address_type == "INTERNAL"
+        assert global_address.purpose == "PRIVATE_SERVICE_CONNECT"
     global_forwarding_rules = list(
         global_forwarding_rules_client.list(
             request=compute_v1.ListGlobalForwardingRulesRequest(
@@ -273,4 +277,31 @@ def test_psc(
             ),
         ),
     )
-    assert len(global_forwarding_rules) == 0
+    assert len(global_forwarding_rules) == 1
+    for global_forwarding_rule in global_forwarding_rules:
+        expected_name = re.sub(r"[^a-z0-9]", "", f"{fixture_name}-abc")[:20]
+        assert global_forwarding_rule.name == expected_name
+        # Description is not persisted
+        assert (
+            not global_forwarding_rule.description
+        )  # assert global_forwarding_rule.description == f"Override description for {fixture_name}"
+        labels = cast("dict[str, str]", global_forwarding_rule.labels)
+        assert labels is not None
+        assert all(item in labels.items() for item in fixture_labels.items())
+        assert global_forwarding_rule.I_p_address == "10.10.10.10"
+        assert global_forwarding_rule.I_p_protocol == "TCP"
+        assert not global_forwarding_rule.all_ports
+        assert not global_forwarding_rule.ports
+        assert not global_forwarding_rule.allow_global_access
+        assert not global_forwarding_rule.allow_psc_global_access
+        assert not global_forwarding_rule.backend_service
+        assert not global_forwarding_rule.external_managed_backend_bucket_migration_state
+        assert not global_forwarding_rule.external_managed_backend_bucket_migration_testing_percentage
+        assert not global_forwarding_rule.load_balancing_scheme
+        assert global_forwarding_rule.target == "vpc-sc"
+        assert global_forwarding_rule.service_directory_registrations
+        assert len(global_forwarding_rule.service_directory_registrations) == 1
+        for service_directory_registration in global_forwarding_rule.service_directory_registrations:
+            assert service_directory_registration.namespace  # Google generated value
+            assert not service_directory_registration.service
+            assert service_directory_registration.service_directory_region == "us-central1"  # Default is us-central1

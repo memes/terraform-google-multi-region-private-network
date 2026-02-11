@@ -7,15 +7,16 @@ requires-python = ">=3.12"
 # spell-checker: disable
 dependencies = [
     "google-cloud-compute>=1.36.0",
-    "pytest>=8.4.1",
-    "pytest-cov>=6.2.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "pytest-xdist>=3.8.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.2.0",
-    "pyright[nodejs]>=1.1.404",
-    "ruff>=0.12.11",
+    "pre-commit>=4.5.1",
+    "ruff>=0.15.0",
+    "ty>=0.0.16",
 ]
 
 [tool.ruff]
@@ -39,10 +40,6 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 
-[tool.pyright]
-venvPath = "."
-venv = ".venv"
-
 [tool.coverage.paths]
 source = ["tests"]
 
@@ -52,8 +49,14 @@ show_missing = true
 [tool.coverage.run]
 branch = true
 
-[tool.pytest.ini_options]
-addopts = "--import-mode=importlib --cov=tests --cov-report=term-missing"
+[tool.pytest]
+addopts = [
+    "--import-mode=importlib",
+    "--cov=tests",
+    "--cov-report=term-missing",
+    "--numprocesses=auto",
+    "--dist=loadfile",
+]
 log_cli = true
 log_cli_level = "WARNING"
 log_cli_format = "%(asctime)s - %(levelname)s:%(name)s:%s(message)"
