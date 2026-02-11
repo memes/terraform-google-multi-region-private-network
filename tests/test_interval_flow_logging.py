@@ -1,7 +1,7 @@
 """Test fixture for dual-region deployment with flow logging every minute."""
 
 import pathlib
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from typing import Any
 
 import pytest
@@ -29,15 +29,14 @@ def fixture_labels(labels: dict[str, str]) -> dict[str, str] | None:
 
 @pytest.fixture(scope="module")
 def output(
-    root_fixture_dir: pathlib.Path,
+    root_fixture_dir: Callable[[str], pathlib.Path],
     project_id: str,
     fixture_name: str,
     fixture_labels: dict[str, str],
 ) -> Generator[dict[str, Any], None, None]:
     """Execute Tofu (or Terraform) with the input vars suitable for this fixture, yielding the module output."""
     with run_tofu_in_workspace(
-        fixture=root_fixture_dir,
-        workspace=fixture_name,
+        fixture=root_fixture_dir(FIXTURE_NAME),
         tfvars={
             "project_id": project_id,
             "name": fixture_name,
