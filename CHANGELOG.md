@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v5.1.0...v5.2.0) (2026-02-11)
+
+
+### Features
+
+* Change default PSC name and description ([2419d78](https://github.com/memes/terraform-google-multi-region-private-network/commit/2419d783144e1352659d4acd84517510ec0189a4)), closes [#137](https://github.com/memes/terraform-google-multi-region-private-network/issues/137)
+
 ## [5.1.0](https://github.com/memes/terraform-google-multi-region-private-network/compare/v5.0.0...v5.1.0) (2025-10-28)
 
 
