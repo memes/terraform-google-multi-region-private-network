@@ -5,20 +5,20 @@
         "ghcr.io/memes/devcontainers-features/direnv:1": {},
         "ghcr.io/memes/devcontainers-features/google-cloud-cli:1": {},
         "ghcr.io/memes/devcontainers-features/opentofu:1": {
-            "version": "1.10.5"
+            "version": "1.11.4"
         },
         "ghcr.io/memes/devcontainers-features/starship:1": {},
         "ghcr.io/memes/devcontainers-features/talisman:1": {
             "version": "1.37.0"
         },
         "ghcr.io/memes/devcontainers-features/terraform-docs:1": {
-            "version": "0.20.0"
+            "version": "0.21.0"
         },
         "ghcr.io/memes/devcontainers-features/tflint:1": {
-            "version": "0.58.1"
+            "version": "0.61.0"
         },
         "ghcr.io/memes/devcontainers-features/hashicorp:1": {
-            "terraform": "1.5.5"
+            "terraform": "1.5.7"
         }
 
     },
@@ -26,7 +26,6 @@
         "vscode": {
             "extensions": [
                 "Gruntfuggly.todo-tree",
-                "ms-python.vscode-pylance",
                 "ms-python.python",
                 "ms-python.debugpy",
                 "ms-python.vscode-python-envs",
@@ -37,7 +36,8 @@
                 "esbenp.prettier-vscode",
                 "DavidAnson.vscode-markdownlint",
                 "hashicorp.hcl",
-                "charliermarsh.ruff"
+                "charliermarsh.ruff",
+                "astral-sh.ty"
             ]
         }
     },
@@ -54,6 +54,6 @@
     },
     "updateRemoteUserUID": true,
     "mounts": [
-        "source=${localEnv:HOME}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind"
+        "source=${localEnv:HOME}/.config/gcloud,target=/home/vscode/.config/gcloud,type=bind,consistency=cached"
     ]
 }
